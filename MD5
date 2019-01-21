@@ -1,7 +1,7 @@
-384948fae75ef51320e0e8d0d7cf96b1 *ChangeLog
-318a3d632c04060349947ca232181f5c *DESCRIPTION
+6ab83df82f23d70cb3cbee65ccce54c4 *ChangeLog
+ae3aad0fe43d04bc83518742adb5eaba *DESCRIPTION
 5681f95e0048abeba82cac04237745e5 *NAMESPACE
-2199fe1ba8122e665d0a84ff21bbe76a *NEWS.md
+bb6f937fc2279b2315bd0f67a207d656 *NEWS.md
 9a2803081512326246f9aa94eeed082b *R/RcppEnsmallen-package.R
 bab884593e008ce213fe8cf3710d06c4 *R/RcppExports.R
 7449e65e269e7d7d0e7300e0eea554f3 *R/inline.R
@@ -9,7 +9,7 @@ bab884593e008ce213fe8cf3710d06c4 *R/RcppExports.R
 71afd305f84c4b2388b3164d2bcf0ded *inst/CITATION
 7e0c4fbd5c09355fc855544e164212ba *inst/include/README
 fa1c8cc66e2c17b347c25bf2cc024711 *inst/include/RcppEnsmallen.h
-c7a4ba340cbe8849db8ce48c3c5079ee *inst/include/ensmallen.hpp
+238edf68e1420726fcfadb5a20a629e5 *inst/include/ensmallen.hpp
 a47dfde5ac7e09bfc4ba6c63e5d6e58f *inst/include/ensmallen_bits/ada_delta/ada_delta.hpp
 0def7bb85c67e860c1e211827c0ad0fc *inst/include/ensmallen_bits/ada_delta/ada_delta_impl.hpp
 0fbd2e1b557f53a52dd39788dff6ef3f *inst/include/ensmallen_bits/ada_delta/ada_delta_update.hpp
@@ -24,10 +24,10 @@ bf402c055c0165c6b01a47bcddfcb57c *inst/include/ensmallen_bits/adam/adamax_update
 adb2ca3cca01ac1ff749b470c524dc6a *inst/include/ensmallen_bits/adam/nadam_update.hpp
 1c4cde717452a34325a3ed91496e283a *inst/include/ensmallen_bits/adam/nadamax_update.hpp
 4e204b6ec550c607edc2c26555f25d4c *inst/include/ensmallen_bits/adam/optimisticadam_update.hpp
-c1c12cd44d191b2a4e1a37fc1bd65563 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian.hpp
+e070eed145ba11c601e020d3ae2fe62f *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian.hpp
 77eaa219be4bd68a708ef46241b97534 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_function.hpp
 7b1d2d34401eba4383fe4f71c6933425 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_function_impl.hpp
-86a7efff14417d9c56dabf7169533a10 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_impl.hpp
+62b074bbffeb734f84e3b50d99253003 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_impl.hpp
 76d0386ee671b84b04ab8923f76c812d *inst/include/ensmallen_bits/bigbatch_sgd/adaptive_stepsize.hpp
 d1b7a36ed6fd76c96b3b6978785f8da8 *inst/include/ensmallen_bits/bigbatch_sgd/backtracking_line_search.hpp
 e424a900e8aedfe96862a4edeaa383d0 *inst/include/ensmallen_bits/bigbatch_sgd/bigbatch_sgd.hpp
@@ -39,7 +39,7 @@ e424a900e8aedfe96862a4edeaa383d0 *inst/include/ensmallen_bits/bigbatch_sgd/bigba
 709da6b151bd43135ab52e0af3ba66fa *inst/include/ensmallen_bits/cne/cne.hpp
 3780305978a686d643e706197994a71f *inst/include/ensmallen_bits/cne/cne_impl.hpp
 758232504084767d10ae36785e5442f5 *inst/include/ensmallen_bits/config.hpp
-0bce4087d11d19f57354710f6bbfe9fc *inst/include/ensmallen_bits/ens_version.hpp
+9c9fd015c3ef3abff4259d2ed99c1bd8 *inst/include/ensmallen_bits/ens_version.hpp
 1573aae7d299e948db66117eff01c42e *inst/include/ensmallen_bits/eve/eve.hpp
 e90b5efc898aa0e833a268387f1e2762 *inst/include/ensmallen_bits/eve/eve_impl.hpp
 7d344a699acb140da9858a4e5c70147c *inst/include/ensmallen_bits/ftml/ftml.hpp
@@ -152,7 +152,7 @@ e69a34f477848dd7fc70b646f2be2360 *inst/include/ensmallen_bits/scd/descent_polici
 2fd975bd4a3b29b2a34740c6cfe6ebf9 *inst/include/ensmallen_bits/sdp/lrsdp.hpp
 eb88cc5d7dd44ba5a6b7f5fba9b731a3 *inst/include/ensmallen_bits/sdp/lrsdp_function.hpp
 b90af20722a61dd07785011d786e4eee *inst/include/ensmallen_bits/sdp/lrsdp_function_impl.hpp
-40fc56f8a5e3e07a4f3ddba946d9576e *inst/include/ensmallen_bits/sdp/lrsdp_impl.hpp
+9690e40368c7407c22e2dd26a130a70b *inst/include/ensmallen_bits/sdp/lrsdp_impl.hpp
 52a724be63b2a9824796a0ec516eb53d *inst/include/ensmallen_bits/sdp/primal_dual.hpp
 d3c0ad000d9afd391b0f0c117dc340d4 *inst/include/ensmallen_bits/sdp/primal_dual_impl.hpp
 96405277f5e8affafa0d431cf6c4a2cf *inst/include/ensmallen_bits/sdp/sdp.hpp
@@ -176,6 +176,8 @@ d30fa45347f9066b6b359a2e624f6e39 *inst/include/ensmallen_bits/smorms3/smorms3_up
 da830265d9bd0a93983c7f92d5c14644 *inst/include/ensmallen_bits/spalera_sgd/spalera_sgd.hpp
 99a57ad149a9bcc6175dcfdf33691853 *inst/include/ensmallen_bits/spalera_sgd/spalera_sgd_impl.hpp
 052d40957f102b6a565331932395862d *inst/include/ensmallen_bits/spalera_sgd/spalera_stepsize.hpp
+00cd98e4f7ad0a472be1c73ebfc2ae05 *inst/include/ensmallen_bits/spsa/spsa.hpp
+58d5327616a6f8e1d0fcfee142626f01 *inst/include/ensmallen_bits/spsa/spsa_impl.hpp
 7114d7885004d8161179505e252da587 *inst/include/ensmallen_bits/svrg/barzilai_borwein_decay.hpp
 3a9174fce7b223ec4d34c860934e6e5c *inst/include/ensmallen_bits/svrg/svrg.hpp
 3144b04b0e4ebf882d5b95365c61bbb7 *inst/include/ensmallen_bits/svrg/svrg_impl.hpp
