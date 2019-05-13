@@ -1,7 +1,7 @@
-5768ee277e7db3b31f70c0b136c08cf8 *ChangeLog
-022137711d31ba7f391fbf6a6a636f31 *DESCRIPTION
+42e81dac7a672cccae9a78f3a1d1d428 *ChangeLog
+cc2893f3293fcc6d456d0f3c00d95497 *DESCRIPTION
 5681f95e0048abeba82cac04237745e5 *NAMESPACE
-8440a0c9cb966df60662da0e906927d5 *NEWS.md
+0911407e6574b6727ad3710410f332ab *NEWS.md
 9a2803081512326246f9aa94eeed082b *R/RcppEnsmallen-package.R
 bab884593e008ce213fe8cf3710d06c4 *R/RcppExports.R
 7449e65e269e7d7d0e7300e0eea554f3 *R/inline.R
@@ -28,8 +28,8 @@ e070eed145ba11c601e020d3ae2fe62f *inst/include/ensmallen_bits/aug_lagrangian/aug
 77eaa219be4bd68a708ef46241b97534 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_function.hpp
 7b1d2d34401eba4383fe4f71c6933425 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_function_impl.hpp
 62b074bbffeb734f84e3b50d99253003 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_impl.hpp
-76d0386ee671b84b04ab8923f76c812d *inst/include/ensmallen_bits/bigbatch_sgd/adaptive_stepsize.hpp
-d1b7a36ed6fd76c96b3b6978785f8da8 *inst/include/ensmallen_bits/bigbatch_sgd/backtracking_line_search.hpp
+d0c9d15de6422a75c3656812321e57c0 *inst/include/ensmallen_bits/bigbatch_sgd/adaptive_stepsize.hpp
+3abe2768377a98f2a012555b14647d2c *inst/include/ensmallen_bits/bigbatch_sgd/backtracking_line_search.hpp
 e424a900e8aedfe96862a4edeaa383d0 *inst/include/ensmallen_bits/bigbatch_sgd/bigbatch_sgd.hpp
 87616f66c306b4c1f093f70dadc6203f *inst/include/ensmallen_bits/bigbatch_sgd/bigbatch_sgd_impl.hpp
 7de7b4ea4681ef19aeb8d39f46f231d7 *inst/include/ensmallen_bits/cmaes/cmaes.hpp
@@ -41,7 +41,7 @@ e424a900e8aedfe96862a4edeaa383d0 *inst/include/ensmallen_bits/bigbatch_sgd/bigba
 758232504084767d10ae36785e5442f5 *inst/include/ensmallen_bits/config.hpp
 5899318d137fc8a94511295db30ca1b8 *inst/include/ensmallen_bits/de/de.hpp
 818b3eb5c3a693866f7dea5fa861a5cb *inst/include/ensmallen_bits/de/de_impl.hpp
-8e10e30a66bc7cc1a87f813d657c02d3 *inst/include/ensmallen_bits/ens_version.hpp
+647a5de8dad4444841e41acd9522e70f *inst/include/ensmallen_bits/ens_version.hpp
 1573aae7d299e948db66117eff01c42e *inst/include/ensmallen_bits/eve/eve.hpp
 e90b5efc898aa0e833a268387f1e2762 *inst/include/ensmallen_bits/eve/eve_impl.hpp
 7d344a699acb140da9858a4e5c70147c *inst/include/ensmallen_bits/ftml/ftml.hpp
@@ -59,7 +59,7 @@ c6d9675ae60310c02c5c8fc0807f64ff *inst/include/ensmallen_bits/function/add_gradi
 85c606c679db7a29f20a1a4c77df31dd *inst/include/ensmallen_bits/function/sfinae_utility.hpp
 7d2756f01d9d8f5da3ff6fac184a5499 *inst/include/ensmallen_bits/function/static_checks.hpp
 6fd69a32ccb75d26db52f726a5f8caed *inst/include/ensmallen_bits/function/traits.hpp
-01ecc7395e911aa464dcba7831f49223 *inst/include/ensmallen_bits/fw/atoms.hpp
+42d740eff9e9d64a4cc70ec37449be1d *inst/include/ensmallen_bits/fw/atoms.hpp
 2714a521427ce1b9cc8e70317767a46f *inst/include/ensmallen_bits/fw/constr_lpball.hpp
 7d99da8b5afd79cff12157f88ec1826f *inst/include/ensmallen_bits/fw/constr_structure_group.hpp
 cbfc2390af78f4758ef3598db4767a93 *inst/include/ensmallen_bits/fw/frank_wolfe.hpp
@@ -156,7 +156,7 @@ eb88cc5d7dd44ba5a6b7f5fba9b731a3 *inst/include/ensmallen_bits/sdp/lrsdp_function
 b90af20722a61dd07785011d786e4eee *inst/include/ensmallen_bits/sdp/lrsdp_function_impl.hpp
 9690e40368c7407c22e2dd26a130a70b *inst/include/ensmallen_bits/sdp/lrsdp_impl.hpp
 52a724be63b2a9824796a0ec516eb53d *inst/include/ensmallen_bits/sdp/primal_dual.hpp
-d3c0ad000d9afd391b0f0c117dc340d4 *inst/include/ensmallen_bits/sdp/primal_dual_impl.hpp
+24ae969cd39a08e0742c57f902db7080 *inst/include/ensmallen_bits/sdp/primal_dual_impl.hpp
 96405277f5e8affafa0d431cf6c4a2cf *inst/include/ensmallen_bits/sdp/sdp.hpp
 b88c53db84ca1fb621cc4a0425b05532 *inst/include/ensmallen_bits/sdp/sdp_impl.hpp
 8554a5ea3e892bec83cad7e2f8036008 *inst/include/ensmallen_bits/sgd/decay_policies/no_decay.hpp
@@ -166,7 +166,7 @@ a68cc07901292aa81193623d6f148aa2 *inst/include/ensmallen_bits/sgd/update_policie
 e699309634dcda8afeb1476169310e98 *inst/include/ensmallen_bits/sgd/update_policies/momentum_update.hpp
 8f3db473cb2d6b9059b5dd34e3345001 *inst/include/ensmallen_bits/sgd/update_policies/nesterov_momentum_update.hpp
 af0886cd639c6b8b8df3348310c34806 *inst/include/ensmallen_bits/sgd/update_policies/vanilla_update.hpp
-83a35446d413e4f52bfa0e6241f4e700 *inst/include/ensmallen_bits/sgdr/cyclical_decay.hpp
+9987c8b1888122c2bde3221940e49cc6 *inst/include/ensmallen_bits/sgdr/cyclical_decay.hpp
 1eeb41cc70abc1699377caa7c2a31731 *inst/include/ensmallen_bits/sgdr/sgdr.hpp
 fa2d6897f483edfddd13591b2211f1e2 *inst/include/ensmallen_bits/sgdr/sgdr_impl.hpp
 c688a5797a4cef6b4afb259b89f560af *inst/include/ensmallen_bits/sgdr/snapshot_ensembles.hpp

@@ -1,7 +1,7 @@
 Package: RcppEnsmallen
 Title: Header-Only C++ Mathematical Optimization Library for
         'Armadillo'
-Version: 0.1.14.1.1
+Version: 0.1.14.4.1
 Authors@R: c(
     person("James Joseph", "Balamuta", email = "balamut2@illinois.edu", 
            role = c("aut", "cre", "cph"), 
@@ -36,10 +36,10 @@ Imports: Rcpp
 RoxygenNote: 6.1.1
 SystemRequirements: C++11
 NeedsCompilation: yes
-Packaged: 2019-03-10 02:52:09 UTC; ronin
+Packaged: 2019-05-13 13:59:38 UTC; ronin
 Author: James Joseph Balamuta [aut, cre, cph]
     (<https://orcid.org/0000-0003-2826-8458>),
   Dirk Eddelbuettel [aut, cph] (<https://orcid.org/0000-0001-6419-907X>)
 Maintainer: James Joseph Balamuta <balamut2@illinois.edu>
 Repository: CRAN
-Date/Publication: 2019-03-10 05:22:40 UTC
+Date/Publication: 2019-05-13 14:40:02 UTC
