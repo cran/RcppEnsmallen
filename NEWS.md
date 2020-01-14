@@ -1,3 +1,25 @@
+# RcppEnsmallen 0.2.11.1.1
+
+- Upgraded to ensmallen 2.11.1: "The Poster Session Is Full" (2019-12-28)
+  - Fix Lookahead Synchronization period type
+    ([#153](https://github.com/mlpack/ensmallen/pull/153)).
+  - Add Lookahead
+    ([#138](https://github.com/mlpack/ensmallen/pull/138)).
+  - Add AdaBound and AMSBound
+    ([#137](https://github.com/mlpack/ensmallen/pull/137)).
+  - SGD callback test 32-bit safety (big number)
+    ([#143](https://github.com/mlpack/ensmallen/pull/143)).
+  - Use "arbitrary" and "separable" terms in static function type checks
+    ([#145](https://github.com/mlpack/ensmallen/pull/145)).
+  - Remove 'using namespace std' from `problems/` files
+    ([#147](https://github.com/mlpack/ensmallen/pull/147)).
+  - Add optional tests building.
+    ([#141](https://github.com/mlpack/ensmallen/pull/141)).
+  - Make code samples collapsible in the documentation.
+    ([#140](https://github.com/mlpack/ensmallen/pull/140)).
+- Switched deployment from TravisCI to GitHub Actions. ([#17](https://github.com/coatless/rcppensmallen/pull/17), [#22](https://github.com/coatless/rcppensmallen/pull/22))
+- Removed check on header file inclusion ([#21](https://github.com/coatless/rcppensmallen/pull/21))
+
 # RcppEnsmallen 0.2.10.3.1
 
 - Upgraded to ensmallen 2.10.3: "Fried Chicken" (2019-09-26)

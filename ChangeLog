@@ -1,3 +1,28 @@
+2019-01-14  James Balamuta  <balamut2@illinois.edu>
+
+	* inst/include/RcppEnsmallen.h: Removed header ordering checks
+
+2019-01-13  James Balamuta  <balamut2@illinois.edu>
+
+	* .github/workflows/pr-commands.yaml: Removed as its overly eager.
+
+2020-01-11  Dirk Eddelbuettel  <edd@debian.org>
+
+	* inst/include/RcppEnsmallen.h: Protected header inclusion check
+
+2019-12-30  James Balamuta  <balamut2@illinois.edu>
+
+	* DESCRIPTION (Version): Release 2.11.1
+
+	* NEWS.md: Update for Ensmallen release 2.11.1
+
+	* inst/include/ensmallen_bits: Upgraded to Ensmallen 2.11.1
+	* inst/include/ensmallen.hpp: ditto
+
+	* .github/workflows/R-CMD-check.yaml: Added github actions for package checks.
+
+	* .github/workflows/pr-commands.yaml: Enabled slash commands for documentation.
+
 2019-09-30  James Balamuta  <balamut2@illinois.edu>
 
 	* vignettes/using-rcppensmallen.Rmd: Improved wording.
@@ -6,7 +31,7 @@
 
 2019-09-27  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 2.10.3
+	* DESCRIPTION (Version): Release 2.10.3
 
 	* NEWS.md: Update for Ensmallen release 2.10.3
 
@@ -17,7 +42,7 @@
 
 2019-09-07  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 2.10.0 and armadillo dependency
+	* DESCRIPTION (Version): Release 2.10.0 and armadillo dependency
 
 	* NEWS.md: Update for Ensmallen release 2.10.0
 
@@ -28,11 +53,11 @@
 
 	* inst/AUTHORS: Added an author notice
 
-	* DESCRIPTION (Version, Date): Mark new developer release
+	* DESCRIPTION (Version): Mark new developer release
 
 2019-08-09  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.16.0
+	* DESCRIPTION (Version): Release 1.16.0
 
 	* NEWS.md: Update for Ensmallen release 1.16.0
 
@@ -44,7 +69,7 @@
 
 2019-05-20  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.15.0
+	* DESCRIPTION (Version): Release 1.15.0
 
 	* NEWS.md: Update for Ensmallen release 1.15.0
 
@@ -57,7 +82,7 @@
 
 2019-05-12  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.14.4
+	* DESCRIPTION (Version): Release 1.14.4
 
 	* NEWS.md: Update for Ensmallen release 1.14.4
 
@@ -66,7 +91,7 @@
 
 2019-03-09  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.14.1
+	* DESCRIPTION (Version): Release 1.14.1
 
 	* NEWS.md: Update for Ensmallen release 1.14.1
 
@@ -75,7 +100,7 @@
 
 2019-01-20  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.13.0
+	* DESCRIPTION (Version): Release 1.13.0
 
 	* NEWS.md: Update for Ensmallen release 1.13.0
 
@@ -84,7 +109,7 @@
 
 2018-12-30  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.12.0
+	* DESCRIPTION (Version): Release 1.12.0
 
 	* NEWS.md: Update for Ensmallen release 1.12.0
 
@@ -95,7 +120,7 @@
 
 2018-11-30  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Release 1.11.1
+	* DESCRIPTION (Version): Release 1.11.1
 
 	* NEWS.md: Update for Ensmallen release 1.11.1
 
@@ -116,7 +141,7 @@
 
 2018-10-21  James Balamuta  <balamut2@illinois.edu>
 
-	* DESCRIPTION (Version, Date): Initial release
+	* DESCRIPTION (Version): Initial release
 	* inline.R: Add connection to Rcpp's package manager for compiling outside
 	  of a package
 	* src/example-linear-regression-lbfgs.cpp: Example usage for solving a
