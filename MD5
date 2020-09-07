@@ -1,7 +1,7 @@
-91857986a64003c9e14771f990249019 *ChangeLog
-a4702046e7693f4ac13664489e753ed7 *DESCRIPTION
+49aa8766be76856b8f27e3f937bbcfe4 *ChangeLog
+2f0f29c3502823f87b7ecdb9d959cbb4 *DESCRIPTION
 5681f95e0048abeba82cac04237745e5 *NAMESPACE
-b8cc51775728cda63d103b33756d38a8 *NEWS.md
+ddc7fff1f64edd4cf58757038fcb6ab6 *NEWS.md
 9a2803081512326246f9aa94eeed082b *R/RcppEnsmallen-package.R
 bab884593e008ce213fe8cf3710d06c4 *R/RcppExports.R
 7449e65e269e7d7d0e7300e0eea554f3 *R/inline.R
@@ -12,7 +12,7 @@ bc7dc768ac3e1c5d936581ef48dabb7f *build/vignette.rds
 00e6adbae61b148b52d95d1b91c2d1a1 *inst/COPYRIGHTS
 c676a5a252fec7356425e85b1b00180f *inst/doc/using-rcppensmallen.R
 4057b74a73e81b0969d5d20287c2983b *inst/doc/using-rcppensmallen.Rmd
-c5dd88bf5bc92fb463d802d6f554c4c9 *inst/doc/using-rcppensmallen.html
+4de4d502ede8e55b5058ee494b76a7c9 *inst/doc/using-rcppensmallen.html
 7e0c4fbd5c09355fc855544e164212ba *inst/include/README
 714d33eb708817f166cf34e1656f685f *inst/include/RcppEnsmallen.h
 a05719d75c36e83d886a0a7d2465c050 *inst/include/ensmallen.hpp
@@ -58,7 +58,7 @@ e13c2e7e86f400fbc7ea51a33fd787a6 *inst/include/ensmallen_bits/cmaes/cmaes_impl.h
 832e90027930404f4ffc693c26a52f8b *inst/include/ensmallen_bits/config.hpp
 be4ed3e06090a1d69020990ec4975403 *inst/include/ensmallen_bits/de/de.hpp
 bdb84056624711debabf862983785955 *inst/include/ensmallen_bits/de/de_impl.hpp
-1f1a07738eb0762902f221b3911c9c9a *inst/include/ensmallen_bits/ens_version.hpp
+146e8e5064f98d0bab0d92a379854d9f *inst/include/ensmallen_bits/ens_version.hpp
 1550d02bbeb2080c160669028d5447c6 *inst/include/ensmallen_bits/eve/eve.hpp
 206233868fbd3234cae6087fa6d99cae *inst/include/ensmallen_bits/eve/eve_impl.hpp
 f49c12bdc7f7623fef5d7bac406d07a8 *inst/include/ensmallen_bits/ftml/ftml.hpp
@@ -130,7 +130,7 @@ d2d9b69e1328653e531dfcac181d882d *inst/include/ensmallen_bits/problems/easom_fun
 fab1fbc6b8797a2c65511e5237f2d714 *inst/include/ensmallen_bits/problems/easom_function_impl.hpp
 145ee6683efde04dfead54474d18821a *inst/include/ensmallen_bits/problems/eggholder_function.hpp
 52ab5f7af95b8705b4e02f63dd88cd3a *inst/include/ensmallen_bits/problems/eggholder_function_impl.hpp
-ed61edacfb28e4d1e0e09ec84461fcdb *inst/include/ensmallen_bits/problems/fonseca_fleming_function.hpp
+657317b69b591e51b2eceaf4f5712eaf *inst/include/ensmallen_bits/problems/fonseca_fleming_function.hpp
 4e20626214b17ef0c982a88f2c5aa31f *inst/include/ensmallen_bits/problems/fw_test_function.hpp
 dedbcb1cd324ee42ca7bf0181e01d647 *inst/include/ensmallen_bits/problems/generalized_rosenbrock_function.hpp
 69446101f25b65da0696e2f048622233 *inst/include/ensmallen_bits/problems/generalized_rosenbrock_function_impl.hpp
