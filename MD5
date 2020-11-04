@@ -1,7 +1,7 @@
-49aa8766be76856b8f27e3f937bbcfe4 *ChangeLog
-2f0f29c3502823f87b7ecdb9d959cbb4 *DESCRIPTION
+762e330c94825cf30b9f327f87cb0fd6 *ChangeLog
+e56d13a2e71843360a0327ac82028395 *DESCRIPTION
 5681f95e0048abeba82cac04237745e5 *NAMESPACE
-ddc7fff1f64edd4cf58757038fcb6ab6 *NEWS.md
+9c1d205c4943caec2891a96accc58503 *NEWS.md
 9a2803081512326246f9aa94eeed082b *R/RcppEnsmallen-package.R
 bab884593e008ce213fe8cf3710d06c4 *R/RcppExports.R
 7449e65e269e7d7d0e7300e0eea554f3 *R/inline.R
@@ -12,10 +12,10 @@ bc7dc768ac3e1c5d936581ef48dabb7f *build/vignette.rds
 00e6adbae61b148b52d95d1b91c2d1a1 *inst/COPYRIGHTS
 c676a5a252fec7356425e85b1b00180f *inst/doc/using-rcppensmallen.R
 4057b74a73e81b0969d5d20287c2983b *inst/doc/using-rcppensmallen.Rmd
-4de4d502ede8e55b5058ee494b76a7c9 *inst/doc/using-rcppensmallen.html
+a1a36ff7122182c395995eb0cb088533 *inst/doc/using-rcppensmallen.html
 7e0c4fbd5c09355fc855544e164212ba *inst/include/README
 714d33eb708817f166cf34e1656f685f *inst/include/RcppEnsmallen.h
-a05719d75c36e83d886a0a7d2465c050 *inst/include/ensmallen.hpp
+6ce64ea22d70030523e66910a7fd28f1 *inst/include/ensmallen.hpp
 cd34e016bb76dacb1309d9063c04bc1e *inst/include/ensmallen_bits/ada_bound/ada_bound.hpp
 d8b802c65905e489b0d00af8f8ad901e *inst/include/ensmallen_bits/ada_bound/ada_bound_impl.hpp
 081fdcff316029a591c9293fa78610df *inst/include/ensmallen_bits/ada_bound/ada_bound_update.hpp
@@ -46,7 +46,8 @@ ad31bd17132289dc965ffe1240c8c47d *inst/include/ensmallen_bits/bigbatch_sgd/bigba
 87248e72c890514b595f72bc11a0fe43 *inst/include/ensmallen_bits/callbacks/early_stop_at_min_loss.hpp
 6d0496ce1668f3dee3a7cd95ec47f70f *inst/include/ensmallen_bits/callbacks/print_loss.hpp
 e145d02b5400dcb73c3275a233b52514 *inst/include/ensmallen_bits/callbacks/progress_bar.hpp
-19dd7670680945f6260b1940bd14a5a1 *inst/include/ensmallen_bits/callbacks/store_best_coordinates.hpp
+2b684b474f6414c45630e0cb31736e56 *inst/include/ensmallen_bits/callbacks/report.hpp
+b7dbfaed279439b2c48a483f9782d671 *inst/include/ensmallen_bits/callbacks/store_best_coordinates.hpp
 1a4264c4246a000d63933427d08fdd28 *inst/include/ensmallen_bits/callbacks/timer_stop.hpp
 29f2a523320bc046ebe37ba5ab6f4a7a *inst/include/ensmallen_bits/callbacks/traits.hpp
 d3d8934f3279069b6ce5e86c3c3aa3ed *inst/include/ensmallen_bits/cmaes/cmaes.hpp
@@ -58,7 +59,7 @@ e13c2e7e86f400fbc7ea51a33fd787a6 *inst/include/ensmallen_bits/cmaes/cmaes_impl.h
 832e90027930404f4ffc693c26a52f8b *inst/include/ensmallen_bits/config.hpp
 be4ed3e06090a1d69020990ec4975403 *inst/include/ensmallen_bits/de/de.hpp
 bdb84056624711debabf862983785955 *inst/include/ensmallen_bits/de/de_impl.hpp
-146e8e5064f98d0bab0d92a379854d9f *inst/include/ensmallen_bits/ens_version.hpp
+340076aa381457b623475f8fff253b9d *inst/include/ensmallen_bits/ens_version.hpp
 1550d02bbeb2080c160669028d5447c6 *inst/include/ensmallen_bits/eve/eve.hpp
 206233868fbd3234cae6087fa6d99cae *inst/include/ensmallen_bits/eve/eve_impl.hpp
 f49c12bdc7f7623fef5d7bac406d07a8 *inst/include/ensmallen_bits/ftml/ftml.hpp
@@ -74,7 +75,7 @@ e2912f051d50689d22b0e915f60a9ad4 *inst/include/ensmallen_bits/function/add_separ
 186d4d8a8f4140f12c63295b68cf8584 *inst/include/ensmallen_bits/function/arma_traits.hpp
 14fa5edd7f8db8d4d04cf86b9096466a *inst/include/ensmallen_bits/function/sfinae_utility.hpp
 ebf54d3403747a1beb7614992f08c02b *inst/include/ensmallen_bits/function/static_checks.hpp
-338ca458ba4f57707e890c8c2e937acd *inst/include/ensmallen_bits/function/traits.hpp
+a8b900a0b4eab698d478d451f9eb2783 *inst/include/ensmallen_bits/function/traits.hpp
 8ce3c0416db800f558f03b4a7e456717 *inst/include/ensmallen_bits/fw/atoms.hpp
 a194b179734175380959875fe90334b0 *inst/include/ensmallen_bits/fw/constr_lpball.hpp
 e0a17ecdb5eaf507668877615bd4079e *inst/include/ensmallen_bits/fw/constr_structure_group.hpp
