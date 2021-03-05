@@ -1,3 +1,29 @@
+# RcppEnsmallen 0.2.16.1.1
+
+- Upgraded to ensmallen 2.16.1: "Severely Dented Can Of Polyurethane" (2021-03-04)
+  - Fix test compilation issue when `ENS_USE_OPENMP` is set
+    ([#255](https://github.com/mlpack/ensmallen/pull/255)).
+  - Fix CNE initial population generation to use normal distribution
+    ([#258](https://github.com/mlpack/ensmallen/pull/258)).
+  - Fix compilation warnings
+    ([#259](https://github.com/mlpack/ensmallen/pull/259)).
+
+# RcppEnsmallen 0.2.16.0.1 (GitHub-Only Release)
+
+- Upgraded to ensmallen 2.16.0: "Severely Dented Can Of Polyurethane" (2021-02-19)
+  - Expand README with example installation and add simple example program
+    showing usage of the L-BFGS optimizer
+    ([#248](https://github.com/mlpack/ensmallen/pull/248)).
+  - Refactor tests to increase stability and reduce random errors
+    ([#249](https://github.com/mlpack/ensmallen/pull/249)).
+  
+
+# RcppEnsmallen 0.2.15.1.1
+
+- Upgraded to ensmallen 2.15.1: "Why Can't I Manage To Grow Any Plants?" (2020-11-05)
+  - Fix include order to ensure traits is loaded before reports
+    ([#239](https://github.com/mlpack/ensmallen/pull/239)).
+
 # RcppEnsmallen 0.2.15.0.1
 
 - Upgraded to ensmallen 2.15.0: "No Direction Home" (2020-11-03)
