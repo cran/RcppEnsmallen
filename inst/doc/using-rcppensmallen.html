@@ -344,36 +344,70 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h4 class="author">James Joseph Balamuta and Dirk Eddelbuettel</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-<p>Contained within are examples related to using RcppEnsmallen in everyday work alongside of creating an <em>R</em> package with it.</p>
+<p>Contained within are examples related to using RcppEnsmallen in
+everyday work alongside of creating an <em>R</em> package with it.</p>
 </div>
 
 
 
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p><code>RcppEnsmallen</code> package provides an embedded copy of the <a href="https://www.ensmallen.org/docs.html"><code>ensmallen</code></a> C++ library of optimization functions. Optimizers contained within are state of the art and possess a high level of code quality. Each optimizer must be accessed through <em>C++</em> by implementing the appropriate objective functions and, then, surfaced into <em>R</em> through <a href="https://cran.r-project.org/package=RcppArmadillo"><code>RcppArmadillo</code></a>. Alternatively, work has been done by Dirk Schumacher in <a href="https://github.com/dirkschumacher/armacmp"><code>armacmp</code></a> to automatically create the underlying <em>C++</em> code from <em>R</em>.</p>
-<p><strong>Note:</strong> Optimizers in <code>RcppEnsmallen</code> only work with <a href="http://arma.sourceforge.net/docs.html"><code>armadillo</code></a> data structures. Thus, if using <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page"><code>Eigen</code></a> through <a href="https://cran.r-project.org/package=RcppEigen"><code>RcppEigen</code></a>, please consider the <a href="https://cran.r-project.org/package=RcppNumerical"><code>RcppNumerical</code></a> package.</p>
+<p><code>RcppEnsmallen</code> package provides an embedded copy of the
+<a href="https://www.ensmallen.org/docs.html"><code>ensmallen</code></a>
+C++ library of optimization functions. Optimizers contained within are
+state of the art and possess a high level of code quality. Each
+optimizer must be accessed through <em>C++</em> by implementing the
+appropriate objective functions and, then, surfaced into <em>R</em>
+through <a href="https://cran.r-project.org/package=RcppArmadillo"><code>RcppArmadillo</code></a>.
+Alternatively, work has been done by Dirk Schumacher in <a href="https://github.com/dirkschumacher/armacmp"><code>armacmp</code></a>
+to automatically create the underlying <em>C++</em> code from
+<em>R</em>.</p>
+<p><strong>Note:</strong> Optimizers in <code>RcppEnsmallen</code> only
+work with <a href="http://arma.sourceforge.net/docs.html"><code>armadillo</code></a>
+data structures. Thus, if using <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page"><code>Eigen</code></a>
+through <a href="https://cran.r-project.org/package=RcppEigen"><code>RcppEigen</code></a>,
+please consider the <a href="https://cran.r-project.org/package=RcppNumerical"><code>RcppNumerical</code></a>
+package.</p>
 <div id="linear-regression" class="section level2">
 <h2>Linear Regression</h2>
-<p>Consider the <strong>Residual Sum of Squares</strong>, also known as <strong>RSS</strong>, defined as:</p>
-<p><span class="math display">\[RSS\left( \beta \right) = \left( { \mathbf{y} - \mathbf{X} \beta } \right)^{\top} \left( \mathbf{y} - \mathbf{X} \beta \right)\]</span></p>
+<p>Consider the <strong>Residual Sum of Squares</strong>, also known as
+<strong>RSS</strong>, defined as:</p>
+<p><span class="math display">\[RSS\left( \beta \right) = \left( {
+\mathbf{y} - \mathbf{X} \beta } \right)^{\top} \left( \mathbf{y} -
+\mathbf{X} \beta \right)\]</span></p>
 <p>The objective function we wish to minimize would be defined as:</p>
-<p><span class="math display">\[f(\beta) = \rVert y - X\beta\lVert_2\]</span></p>
+<p><span class="math display">\[f(\beta) = \rVert y -
+X\beta\lVert_2\]</span></p>
 <p>The gradient is defined as:</p>
-<p><span class="math display">\[\frac{\partial RSS}{\partial \beta} = -2 \mathbf{X}^{\top} \left(\mathbf{y} - \mathbf{X} \beta \right)\]</span></p>
+<p><span class="math display">\[\frac{\partial RSS}{\partial \beta} = -2
+\mathbf{X}^{\top} \left(\mathbf{y} - \mathbf{X} \beta
+\right)\]</span></p>
 <div id="two-step-implementation" class="section level3">
 <h3>Two-Step Implementation</h3>
-<p>When using <code>ensmallen</code> to solve this problem, we must create a <em>C++</em> class that computes both the objective function value and its gradient value either together or separately under member functions named as:</p>
+<p>When using <code>ensmallen</code> to solve this problem, we must
+create a <em>C++</em> class that computes both the objective function
+value and its gradient value either together or separately under member
+functions named as:</p>
 <ul>
-<li><code>Evaluate()</code>: Value of the objective function under the parameters.</li>
-<li><code>Gradient()</code>: Convergence to the correct value under the given parameters.</li>
-<li><code>EvaluateWithGradient()</code>: Perform both steps at the same time. (Optional)</li>
+<li><code>Evaluate()</code>: Value of the objective function under the
+parameters.</li>
+<li><code>Gradient()</code>: Convergence to the correct value under the
+given parameters.</li>
+<li><code>EvaluateWithGradient()</code>: Perform both steps at the same
+time. (Optional)</li>
 </ul>
-<p>In the Linear Regression scenario, we will define each step separately to emphasize the calculation occurring. Generally, the one step <code>EvaluateWithGradient()</code> function will be faster than the two step variant. More details on design can be found on <a href="https://www.ensmallen.org/docs.html#differentiable-functions"><code>ensmallen</code> documentation page for differentiable functions</a>.</p>
-<p>Before writing the class, <code>RcppEnsmallen</code> requires accessing the library in a standalone C++ file with the follow include and Rcpp Attribute declarations:</p>
+<p>In the Linear Regression scenario, we will define each step
+separately to emphasize the calculation occurring. Generally, the one
+step <code>EvaluateWithGradient()</code> function will be faster than
+the two step variant. More details on design can be found on <a href="https://www.ensmallen.org/docs.html#differentiable-functions"><code>ensmallen</code>
+documentation page for differentiable functions</a>.</p>
+<p>Before writing the class, <code>RcppEnsmallen</code> requires
+accessing the library in a standalone C++ file with the follow include
+and Rcpp Attribute declarations:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;RcppEnsmallen.h&gt;</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppEnsmallen)]]</span></span></code></pre></div>
-<p>The overaching Linear regression class should be constructed as follows:</p>
+<p>The overaching Linear regression class should be constructed as
+follows:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;RcppEnsmallen.h&gt;</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppEnsmallen)]]</span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -409,10 +443,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>From there:</p>
 <ol style="list-style-type: decimal">
 <li>Construct a <em>C++</em> function that exports into <em>R</em>.</li>
-<li>Within the function, determine an appropriate optimizer for the problem.</li>
-<li>Combine the optimizer with the linear regression class to compute the solution to the problem.</li>
+<li>Within the function, determine an appropriate optimizer for the
+problem.</li>
+<li>Combine the optimizer with the linear regression class to compute
+the solution to the problem.</li>
 </ol>
-<p><strong>Note:</strong> Make sure to have the definition of the Linear Regression class in the same <em>C++</em> file as the exported <em>C++</em> function into <em>R</em>.</p>
+<p><strong>Note:</strong> Make sure to have the definition of the Linear
+Regression class in the same <em>C++</em> file as the exported
+<em>C++</em> function into <em>R</em>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>arma<span class="op">::</span>mat lin_reg_lbfgs<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">)</span> <span class="op">{</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -438,14 +476,25 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="verifying-results" class="section level3">
 <h3>Verifying Results</h3>
-<p>Prior to using the new optimizer in mission critical work, compare the results to methods already implemented in <em>R</em>. The best way to achieve this is to create an oracle model by specifying the parameters known to generate data and, then, try to recover them. Moreover, if a method is already implemented in <em>R</em> feel free to try to check the result equality within an appropriate tolerance threshold.</p>
+<p>Prior to using the new optimizer in mission critical work, compare
+the results to methods already implemented in <em>R</em>. The best way
+to achieve this is to create an oracle model by specifying the
+parameters known to generate data and, then, try to recover them.
+Moreover, if a method is already implemented in <em>R</em> feel free to
+try to check the result equality within an appropriate tolerance
+threshold.</p>
 <p>Following with this methodology, data must be generated.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e6</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="fl">1.5</span>, <span class="dv">3</span>, <span class="fl">8.2</span>, <span class="fl">6.6</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">length</span>(beta)</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n), <span class="at">ncol =</span> p <span class="sc">-</span> <span class="dv">1</span>))</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> X <span class="sc">%*%</span> beta <span class="sc">+</span> <span class="fu">rnorm</span>(n <span class="sc">/</span> (p <span class="sc">-</span> <span class="dv">1</span>))</span></code></pre></div>
-<p>Next, the optimization procedure is used to estimate the parameters of interest. Under this example, the results of the estimation can be compared to <code>lm()</code>. That said, <code>lm()</code> may have more precise results when compared against the optimizer as it is implemented with a closed-form solution to linear regression plus the computational is performed more rigorously.</p>
+<p>Next, the optimization procedure is used to estimate the parameters
+of interest. Under this example, the results of the estimation can be
+compared to <code>lm()</code>. That said, <code>lm()</code> may have
+more precise results when compared against the optimizer as it is
+implemented with a closed-form solution to linear regression plus the
+computational is performed more rigorously.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>coefs_lbfgs <span class="ot">&lt;-</span> <span class="fu">lin_reg_lbfgs</span>(X, y)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>coefs_lm <span class="ot">&lt;-</span> <span class="fu">lm.fit</span>(X, y)<span class="sc">$</span>coefficients</span></code></pre></div>
 <table>
@@ -460,28 +509,28 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <tbody>
 <tr class="odd">
 <td align="left">Beta1</td>
-<td align="right">-1.998583</td>
-<td align="right">-1.998583</td>
+<td align="right">-1.996564</td>
+<td align="right">-1.996564</td>
 </tr>
 <tr class="even">
 <td align="left">Beta2</td>
-<td align="right">1.498827</td>
-<td align="right">1.498827</td>
+<td align="right">1.496422</td>
+<td align="right">1.496422</td>
 </tr>
 <tr class="odd">
 <td align="left">Beta3</td>
-<td align="right">3.001903</td>
-<td align="right">3.001903</td>
+<td align="right">3.002049</td>
+<td align="right">3.002049</td>
 </tr>
 <tr class="even">
 <td align="left">Beta4</td>
-<td align="right">8.201191</td>
-<td align="right">8.201191</td>
+<td align="right">8.202431</td>
+<td align="right">8.202431</td>
 </tr>
 <tr class="odd">
 <td align="left">Beta5</td>
-<td align="right">6.599658</td>
-<td align="right">6.599658</td>
+<td align="right">6.602658</td>
+<td align="right">6.602658</td>
 </tr>
 </tbody>
 </table>
@@ -490,13 +539,20 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="package-usage" class="section level1">
 <h1>Package Usage</h1>
-<p>RcppEnsmallen is best used within an <em>R</em> package. The setup for <code>RcppEnsmallen</code>’s use mirrors that of other <code>Rcpp</code>-based projects. In particular, the <code>DESCRIPTION</code> file requires the <code>LinkingTo</code> field to contain:</p>
+<p>RcppEnsmallen is best used within an <em>R</em> package. The setup
+for <code>RcppEnsmallen</code>’s use mirrors that of other
+<code>Rcpp</code>-based projects. In particular, the
+<code>DESCRIPTION</code> file requires the <code>LinkingTo</code> field
+to contain:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">LinkingTo:</span> Rcpp, RcppArmadillo <span class="er">(</span><span class="op">&gt;</span>= <span class="ex">0.9.800.0.0</span><span class="kw">)</span><span class="ex">,</span> RcppEnsmallen <span class="er">(</span><span class="op">&gt;</span>= <span class="ex">0.2.18.0.1</span><span class="kw">)</span></span></code></pre></div>
-<p>Next, the <code>src/</code> directory must contain both a <code>Makevars</code> and <code>Makevars.win</code> file with:</p>
+<p>Next, the <code>src/</code> directory must contain both a
+<code>Makevars</code> and <code>Makevars.win</code> file with:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">CXX_STD</span> = CXX11</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">PKG_CXXFLAGS</span> = <span class="va">$(</span><span class="ex">SHLIB_OPENMP_CXXFLAGS</span><span class="va">)</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">PKG_LIBS</span> = <span class="va">$(</span><span class="ex">SHLIB_OPENMP_CXXFLAGS</span><span class="va">)</span> <span class="va">$(</span><span class="ex">LAPACK_LIBS</span><span class="va">)</span> <span class="va">$(</span><span class="ex">BLAS_LIBS</span><span class="va">)</span> <span class="va">$(</span><span class="ex">FLIBS</span><span class="va">)</span></span></code></pre></div>
-<p>The <code>Makevars.win</code> file provides the appropriate configuration for Windows while <code>Makevars</code> acts on Unix-alike systems like macOS, Linux, and Solaris.</p>
+<p>The <code>Makevars.win</code> file provides the appropriate
+configuration for Windows while <code>Makevars</code> acts on Unix-alike
+systems like macOS, Linux, and Solaris.</p>
 </div>
 
 
