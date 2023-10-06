@@ -1,3 +1,29 @@
+2023-10-05  James Balamuta  <balamut2@illinois.edu>
+
+	* NEWS.md: Fixed redirected HTTP to HTTPS urls
+	* DESCRIPTION: ditto
+	* vignettes/using-rcppensmallen.Rmd: ditto
+
+	* NEWS.md: Restored mlpack/ensmallen URLs
+
+	* DESCRIPTION: Removed CXX11 requirement and bumped R version required to 4.0
+	* src/Makevars: ditto
+	* src/Makevars.win: ditto
+
+	* DESCRIPTION (Version): Release 2.20.0
+	* NEWS.md: Update for Ensmallen release 2.20.0
+	* inst/include/ensmallen_bits: Upgraded to Ensmallen 2.20.0
+	* inst/include/ensmallen.hpp: ditto
+
+2023-02-08  James Balamuta  <balamut2@illinois.edu>
+
+	* DESCRIPTION (Version): Release 2.19.1
+	* NEWS.md: Update for Ensmallen release 2.19.1
+	* inst/include/ensmallen_bits: Upgraded to Ensmallen 2.19.1
+	* inst/include/ensmallen.hpp: ditto
+
+	* .github/workflows/R-CMD-check.yaml: Updated to latest version
+
 2022-04-11  James Balamuta  <balamut2@illinois.edu>
 
 	* DESCRIPTION (Version): Release 2.19.0

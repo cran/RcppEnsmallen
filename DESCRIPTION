@@ -1,7 +1,7 @@
 Package: RcppEnsmallen
 Title: Header-Only C++ Mathematical Optimization Library for
         'Armadillo'
-Version: 0.2.19.0.1
+Version: 0.2.20.0.1
 Authors@R: c(
     person("James Joseph", "Balamuta", email = "balamut2@illinois.edu", 
            role = c("aut", "cre", "cph"), 
@@ -24,23 +24,22 @@ Description: 'Ensmallen' is a templated C++ mathematical optimization library
  the GNU GPL version 2 or later. Thus, 'RcppEnsmallen' is also licensed under
  similar terms. Note that 'Ensmallen' requires a compiler that supports 
  'C++11' and 'Armadillo' 9.800 or later.
-Depends: R (>= 3.3.0)
+Depends: R (>= 4.0.0)
 License: GPL (>= 2)
 URL: https://github.com/coatless-rpkg/rcppensmallen,
-        https://github.com/mlpack/ensmallen, http://ensmallen.org/
+        https://github.com/mlpack/ensmallen, https://ensmallen.org/
 BugReports: https://github.com/coatless-rpkg/rcppensmallen/issues
 Encoding: UTF-8
 LinkingTo: Rcpp, RcppArmadillo (>= 0.9.800.0.0)
 Imports: Rcpp
-RoxygenNote: 7.1.2
-SystemRequirements: C++11
+RoxygenNote: 7.2.3
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2022-04-11 16:27:01 UTC; ronin
+Packaged: 2023-10-06 07:05:23 UTC; ronin
 Author: James Joseph Balamuta [aut, cre, cph]
     (<https://orcid.org/0000-0003-2826-8458>),
   Dirk Eddelbuettel [aut, cph] (<https://orcid.org/0000-0001-6419-907X>)
 Maintainer: James Joseph Balamuta <balamut2@illinois.edu>
 Repository: CRAN
-Date/Publication: 2022-04-11 17:12:30 UTC
+Date/Publication: 2023-10-06 07:50:02 UTC
