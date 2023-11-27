@@ -13,7 +13,7 @@
 <meta name="author" content="James Joseph Balamuta and Dirk Eddelbuettel" />
 
 
-<title>Using RcppEnsmallen</title>
+<title>Solving Linear Regression using Numeric Optimization</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -50,7 +50,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -347,12 +347,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">Using RcppEnsmallen</h1>
+<h1 class="title toc-ignore">Solving Linear Regression using Numeric
+Optimization</h1>
 <h4 class="author">James Joseph Balamuta and Dirk Eddelbuettel</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-<p>Contained within are examples related to using RcppEnsmallen in
-everyday work alongside of creating an <em>R</em> package with it.</p>
+<p>In this vignette, we describe how to use RcppEnsmallen in a
+standalone C++ file.</p>
 </div>
 
 
@@ -383,8 +384,8 @@ package.</p>
 \mathbf{y} - \mathbf{X} \beta } \right)^{\top} \left( \mathbf{y} -
 \mathbf{X} \beta \right)\]</span></p>
 <p>The objective function we wish to minimize would be defined as:</p>
-<p><span class="math display">\[f(\beta) = \rVert y -
-X\beta\lVert_2\]</span></p>
+<p><span class="math display">\[f(\beta) = \rVert \mathbf{y} -
+\mathbf{X}\beta\lVert_2\]</span></p>
 <p>The gradient is defined as:</p>
 <p><span class="math display">\[\frac{\partial RSS}{\partial \beta} = -2
 \mathbf{X}^{\top} \left(\mathbf{y} - \mathbf{X} \beta
@@ -516,50 +517,33 @@ computational is performed more rigorously.</p>
 <tbody>
 <tr class="odd">
 <td align="left">Beta1</td>
-<td align="right">-2.002212</td>
-<td align="right">-2.002212</td>
+<td align="right">-2.000360</td>
+<td align="right">-2.000360</td>
 </tr>
 <tr class="even">
 <td align="left">Beta2</td>
-<td align="right">1.499232</td>
-<td align="right">1.499232</td>
+<td align="right">1.500481</td>
+<td align="right">1.500481</td>
 </tr>
 <tr class="odd">
 <td align="left">Beta3</td>
-<td align="right">3.003895</td>
-<td align="right">3.003895</td>
+<td align="right">2.999367</td>
+<td align="right">2.999367</td>
 </tr>
 <tr class="even">
 <td align="left">Beta4</td>
-<td align="right">8.199433</td>
-<td align="right">8.199433</td>
+<td align="right">8.197844</td>
+<td align="right">8.197844</td>
 </tr>
 <tr class="odd">
 <td align="left">Beta5</td>
-<td align="right">6.595506</td>
-<td align="right">6.595506</td>
+<td align="right">6.598912</td>
+<td align="right">6.598912</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-</div>
-<div id="package-usage" class="section level1">
-<h1>Package Usage</h1>
-<p>RcppEnsmallen is best used within an <em>R</em> package. The setup
-for <code>RcppEnsmallen</code>’s use mirrors that of other
-<code>Rcpp</code>-based projects. In particular, the
-<code>DESCRIPTION</code> file requires the <code>LinkingTo</code> field
-to contain:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">LinkingTo:</span> Rcpp, RcppArmadillo <span class="er">(</span><span class="op">&gt;</span>= <span class="ex">0.9.800.0.0</span><span class="kw">)</span><span class="ex">,</span> RcppEnsmallen <span class="er">(</span><span class="op">&gt;</span>= <span class="ex">0.2.18.0.1</span><span class="kw">)</span></span></code></pre></div>
-<p>Next, the <code>src/</code> directory must contain both a
-<code>Makevars</code> and <code>Makevars.win</code> file with:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">CXX_STD</span> = CXX11</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">PKG_CXXFLAGS</span> = <span class="va">$(</span><span class="ex">SHLIB_OPENMP_CXXFLAGS</span><span class="va">)</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">PKG_LIBS</span> = <span class="va">$(</span><span class="ex">SHLIB_OPENMP_CXXFLAGS</span><span class="va">)</span> <span class="va">$(</span><span class="ex">LAPACK_LIBS</span><span class="va">)</span> <span class="va">$(</span><span class="ex">BLAS_LIBS</span><span class="va">)</span> <span class="va">$(</span><span class="ex">FLIBS</span><span class="va">)</span></span></code></pre></div>
-<p>The <code>Makevars.win</code> file provides the appropriate
-configuration for Windows while <code>Makevars</code> acts on Unix-alike
-systems like macOS, Linux, and Solaris.</p>
 </div>
 
 
