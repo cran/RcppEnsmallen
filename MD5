@@ -1,11 +1,11 @@
-324304ac284e55ffd5b7d91eef48fe98 *ChangeLog
-683f637f845f4434e47245153ec5eb55 *DESCRIPTION
+9dacd7e1d836ffd1c3a93959e761441a *ChangeLog
+842056035b3eb9fb010618180cacd373 *DESCRIPTION
 5681f95e0048abeba82cac04237745e5 *NAMESPACE
-68df5845a4fed83fc8a326af384f82b5 *NEWS.md
+ceeb31be03a776268822bded4fed4e19 *NEWS.md
 9a2803081512326246f9aa94eeed082b *R/RcppEnsmallen-package.R
 bab884593e008ce213fe8cf3710d06c4 *R/RcppExports.R
 7449e65e269e7d7d0e7300e0eea554f3 *R/inline.R
-e4537da272a5e6996a64111316e5a7f1 *README.md
+99fc5b4483deae804281a8c32bd44104 *README.md
 092c480b8fc67b0d7640d2962adcdc0b *build/vignette.rds
 5c807f839331264117d88e6f040ad479 *inst/AUTHORS
 d8aeccc61b42bb5f82a880b07be9b2e1 *inst/CITATION
@@ -14,7 +14,7 @@ adb56fbe8fb4aac85d860d50daf36189 *inst/doc/package-usage.Rmd
 0161631eb4be7a67ddcfee71d976284a *inst/doc/package-usage.html
 ac29e1273777f14b0551b56b2f48c3f9 *inst/doc/using-rcppensmallen.R
 d562bc3fbb82cabc5aa21e246d356b81 *inst/doc/using-rcppensmallen.Rmd
-8435084c8bd228d8d9c20d953f1095aa *inst/doc/using-rcppensmallen.html
+24330672ad62f74436e5c35d20864864 *inst/doc/using-rcppensmallen.html
 7e0c4fbd5c09355fc855544e164212ba *inst/include/README
 714d33eb708817f166cf34e1656f685f *inst/include/RcppEnsmallen.h
 4ed4b0a2e71aa68c00ee4ad865fbe979 *inst/include/ensmallen.hpp
@@ -45,7 +45,7 @@ b4273a5b42aaa62c438af1d4ffe3eb14 *inst/include/ensmallen_bits/adam/optimisticada
 6c0a97121bd64f612fda55a691ede29c *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian.hpp
 94d2832502879b28192d988f7846044f *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_function.hpp
 b40a4f74d478f6f28bbf8e93daee6af9 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_function_impl.hpp
-2627f31ac8036d4bffaec0cb43710a66 *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_impl.hpp
+994cb5722e4ec8d857d9100e63b1e42c *inst/include/ensmallen_bits/aug_lagrangian/aug_lagrangian_impl.hpp
 ec515e95737b702444396b02897e499e *inst/include/ensmallen_bits/bigbatch_sgd/adaptive_stepsize.hpp
 e8841e407f3ba9c9727a78868a907e4f *inst/include/ensmallen_bits/bigbatch_sgd/backtracking_line_search.hpp
 9aac7be092817c4ddccd57124fdba5cb *inst/include/ensmallen_bits/bigbatch_sgd/bigbatch_sgd.hpp
@@ -56,7 +56,7 @@ be89feefb639a7225038c7f822423527 *inst/include/ensmallen_bits/callbacks/grad_cli
 65a1c7e0daed734215b210842cff9b05 *inst/include/ensmallen_bits/callbacks/grad_clip_by_value.hpp
 507429a469bdf52e49e705529e5837ad *inst/include/ensmallen_bits/callbacks/print_loss.hpp
 9fc56e4be61f7afde674f9f13995636c *inst/include/ensmallen_bits/callbacks/progress_bar.hpp
-933e328e5b4ae7d377a5e96f8ddf1553 *inst/include/ensmallen_bits/callbacks/query_front.hpp
+4b77e423c7b99109adbc15ab1f6b8718 *inst/include/ensmallen_bits/callbacks/query_front.hpp
 e6c72bc5214d2fb721d0d1ef8d0a809d *inst/include/ensmallen_bits/callbacks/report.hpp
 6c4f4eecc4d5d119c41f60299eaad938 *inst/include/ensmallen_bits/callbacks/store_best_coordinates.hpp
 1a4264c4246a000d63933427d08fdd28 *inst/include/ensmallen_bits/callbacks/timer_stop.hpp
@@ -71,7 +71,7 @@ d9939c5fe3c7cbb2938b080b963751b2 *inst/include/ensmallen_bits/cmaes/active_cmaes
 9770fe2068bb07fbebe1266c3a0679e6 *inst/include/ensmallen_bits/cmaes/cmaes.hpp
 598078b90aae2192091278e6c0ec3d9d *inst/include/ensmallen_bits/cmaes/cmaes_impl.hpp
 83e4a7626a4e97e85fa75cc732328a64 *inst/include/ensmallen_bits/cmaes/full_selection.hpp
-87bb503804f9c36532895b37793a5874 *inst/include/ensmallen_bits/cmaes/not_empty_transformation.hpp
+fade85ccbeac582b18a108f49925cd73 *inst/include/ensmallen_bits/cmaes/not_empty_transformation.hpp
 13b6898b25ece7f7d6e144373fb0c5cd *inst/include/ensmallen_bits/cmaes/random_selection.hpp
 ed3ef52cdd611849044599ab1b07abaf *inst/include/ensmallen_bits/cmaes/transformation_policies/boundary_box_constraint.hpp
 499376f17c78436752b6f7cfe004351d *inst/include/ensmallen_bits/cmaes/transformation_policies/empty_transformation.hpp
@@ -84,7 +84,7 @@ a14ffe166a9786c023d451a11f1c9b8d *inst/include/ensmallen_bits/demon_adam/demon_a
 8ba1ba81d4eeb78a9f1372999aac149a *inst/include/ensmallen_bits/demon_adam/demon_adam_update.hpp
 149b6ee49a8dca946b45df49281f3cb0 *inst/include/ensmallen_bits/demon_sgd/demon_sgd.hpp
 486b95b4ba2afd23356e025248e4e908 *inst/include/ensmallen_bits/demon_sgd/demon_sgd_update.hpp
-83363b0426dd9d18b01fc11b97f1e939 *inst/include/ensmallen_bits/ens_version.hpp
+95164743b35f48643a0f35e1c05915d0 *inst/include/ensmallen_bits/ens_version.hpp
 1550d02bbeb2080c160669028d5447c6 *inst/include/ensmallen_bits/eve/eve.hpp
 c148490b136833333e6c4d5389c3913e *inst/include/ensmallen_bits/eve/eve_impl.hpp
 f49c12bdc7f7623fef5d7bac406d07a8 *inst/include/ensmallen_bits/ftml/ftml.hpp
@@ -124,7 +124,7 @@ dd29a7787fb577193fb82b1abe019229 *inst/include/ensmallen_bits/iqn/iqn_impl.hpp
 50b437fb6f217ae2945262ad98706779 *inst/include/ensmallen_bits/katyusha/katyusha.hpp
 ca1fdd04c6133b38998529c43b4a78f6 *inst/include/ensmallen_bits/katyusha/katyusha_impl.hpp
 3fa29c0f3491cd61d23cb2ef718a1f64 *inst/include/ensmallen_bits/lbfgs/lbfgs.hpp
-5aa7dc699c38888162cf0869133351be *inst/include/ensmallen_bits/lbfgs/lbfgs_impl.hpp
+f0d09ce566538f49171b6d4e99ecfe40 *inst/include/ensmallen_bits/lbfgs/lbfgs_impl.hpp
 396bf75a32112cdbf82028d8258d50e9 *inst/include/ensmallen_bits/log.hpp
 feffa3918d3394bed5cf089512567e14 *inst/include/ensmallen_bits/lookahead/lookahead.hpp
 c760877e7eb2de53e51cb80c9734b284 *inst/include/ensmallen_bits/lookahead/lookahead_impl.hpp
