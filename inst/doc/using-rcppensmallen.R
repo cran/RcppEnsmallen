@@ -12,8 +12,8 @@ X <- cbind(1, matrix(rnorm(n), ncol = p - 1))
 y <- X %*% beta + rnorm(n / (p - 1))
 
 ## ----data-estimation, eval = FALSE--------------------------------------------
-#  coefs_lbfgs <- lin_reg_lbfgs(X, y)
-#  coefs_lm <- lm.fit(X, y)$coefficients
+# coefs_lbfgs <- lin_reg_lbfgs(X, y)
+# coefs_lm <- lm.fit(X, y)$coefficients
 
 ## ----echo = FALSE-------------------------------------------------------------
 coefs_lbfgs <- RcppEnsmallen::lin_reg_lbfgs(X, y)
