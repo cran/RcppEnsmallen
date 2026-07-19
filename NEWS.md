@@ -1,3 +1,17 @@
+# RcppEnsmallen 0.3.11.0.1
+
+- Upgraded to ensmallen 3.11.0: "Sunny Day" (2025-12-16)
+  - Refactor `GradientDescent` into
+    `GradientDescentType<UpdatePolicyType, DecayPolicyType>` and
+    add the `DeltaBarDelta` and `MomentumDeltaBarDelta` optimizers
+    ([#440](https://github.com/mlpack/ensmallen/pull/440)).
+  - Fix an off-by-one bug where the actual number of executed iterations was one
+    fewer than the specified `maxIterations`
+    ([#443](https://github.com/mlpack/ensmallen/pull/443)).
+- Renamed the bundled 'ensmallen' `MomentumDeltaBarDelta` update header so every
+  packaged file path stays within CRAN's 100-byte tarball limit, and added an
+  automated remap step so future 'ensmallen' upgrades keep to it.
+
 # RcppEnsmallen 0.3.10.0.1
 
 - Upgraded to ensmallen 3.10.0: "Unexpected Rain" (2025-09-30)
@@ -57,6 +71,7 @@
     ([#420](https://github.com/mlpack/ensmallen/pull/420)).
   - Set cmake version range to 3.5...4.0
     ([#422](https://github.com/mlpack/ensmallen/pull/422)).
+
 
 # RcppEnsmallen 0.2.22.1.2
 
