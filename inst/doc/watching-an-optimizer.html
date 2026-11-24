@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+
+<html lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="James Joseph Balamuta" />
+
+
+<title>Watching an Optimizer Run with Callbacks</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+<style type="text/css">
+p.abstract{
+text-align: center;
+font-weight: bold;
+}
+div.abstract{
+margin: auto;
+width: 90%;
+}
+</style>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Watching an Optimizer Run with
+Callbacks</h1>
+<h4 class="author">James Joseph Balamuta</h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+<p><code>ensmallen</code> reports on a run in progress through
+callbacks, objects handed to <code>Optimize()</code> and called at fixed
+points inside the optimizer’s loop. In this vignette we follow a
+mini-batch fit with the built-in callbacks, write one that records every
+point L-BFGS visits, and draw the recorded path over a contour of the
+surface it descends.</p>
+</div>
+
+
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p><code>Optimize()</code> returns the coefficients it arrived at and
+says nothing about how it got there. A run that stopped short of the
+optimum and a run that converged look the same from the outside, as do a
+step size that is too small and one that is too large. <a href="https://www.ensmallen.org/docs.html#callback-documentation">Callbacks</a>
+are <code>ensmallen</code>’s answer, objects passed as trailing
+arguments to <code>Optimize()</code> and called at fixed points inside
+the loop, where they can print what they are handed or keep it.</p>
+<p>The objective throughout is the logistic regression negative
+log-likelihood built in the <a href="logistic-regression.html">logistic
+regression vignette</a>, and the functions called here are the ones that
+vignette produces. The data and the reference fit are regenerated below,
+so nothing here depends on that document having been run.</p>
+</div>
+<div id="the-reference-fit" class="section level1">
+<h1>The reference fit</h1>
+<p>The simulation is the one from the logistic regression vignette,
+unchanged.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.7</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">1.2</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">length</span>(beta)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Design matrix with an intercept column</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> (p <span class="sc">-</span> <span class="dv">1</span>)), <span class="at">ncol =</span> p <span class="sc">-</span> <span class="dv">1</span>))</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Bernoulli responses with the logistic link</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">prob =</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>(X <span class="sc">%*%</span> beta))))</span></code></pre></div>
+<p>The full-batch L-BFGS fit is the reference every run below is
+measured against, and <code>glm.fit()</code> confirms it
+independently:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>mle <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">logistic_reg_lbfgs</span>(X, y))</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(mle <span class="sc">-</span> <span class="fu">unname</span>(<span class="fu">glm.fit</span>(X, y, <span class="at">family =</span> <span class="fu">binomial</span>())<span class="sc">$</span>coefficients)))</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; [1] 4.890248e-09</span></span></code></pre></div>
+</div>
+<div id="built-in-callbacks" class="section level1">
+<h1>Built-in callbacks</h1>
+<p><code>logistic_reg_adam()</code> takes a <code>verbose</code>
+argument, and its whole effect is to add one callback to the
+<code>Optimize()</code> call:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>    <span class="co">// Callbacks are passed as trailing arguments to Optimize(). PrintLoss</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>    <span class="co">// writes to arma::get_cout_stream(), which RcppArmadillo maps to</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="co">// Rcpp::Rcout, so the output is safe to emit from an R package.</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>verbose<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>        optimizer<span class="op">.</span>Optimize<span class="op">(</span>lrf<span class="op">,</span> beta<span class="op">,</span> ens<span class="op">::</span>PrintLoss<span class="op">());</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>        optimizer<span class="op">.</span>Optimize<span class="op">(</span>lrf<span class="op">,</span> beta<span class="op">);</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+<p><a href="https://www.ensmallen.org/docs.html#printloss"><code>ens::PrintLoss</code></a>
+prints the mean negative log-likelihood per observation once per pass
+over the data:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>fit5 <span class="ot">&lt;-</span> <span class="fu">logistic_reg_adam</span>(X, y, <span class="at">max_epochs =</span> <span class="dv">5</span>, <span class="at">verbose =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; 0.646261</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 0.581345</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 0.546041</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 0.526306</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 0.514921</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(fit5) <span class="sc">-</span> mle))</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; [1] 0.3811319</span></span></code></pre></div>
+<p>A model that predicts one half for everything scores <span class="math inline">\(\log 2 \approx 0.693\)</span>, so that is where
+the optimizer sets out from. The callback reports at the <em>end</em> of
+each pass, so the first number printed is already below it.</p>
+<p>Printing does not replace the return value. The number after the
+losses is <code>fit5</code> measured against the maximum likelihood
+estimate. Running the same step size to the default fifty epochs lands
+somewhere else entirely:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>fit50 <span class="ot">&lt;-</span> <span class="fu">logistic_reg_adam</span>(X, y)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(fit50) <span class="sc">-</span> mle))</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; [1] 0.005593227</span></span></code></pre></div>
+<p>The two deviations differ by more than an order of magnitude. The
+printed losses are still falling when the five-epoch run ends, so it
+stops short of the optimum.</p>
+<p><code>ens::PrintLoss</code> writes to
+<code>arma::get_cout_stream()</code>, which <code>RcppArmadillo</code>
+defines as <code>Rcpp::Rcout</code> rather than <code>std::cout</code>,
+so the losses go out on R’s own connection, where they respect
+<code>sink()</code> and avoid the <code>R CMD check</code> warnings
+<code>std::cout</code> would draw.</p>
+<p>Three others come up regularly:</p>
+<ul>
+<li><a href="https://www.ensmallen.org/docs.html#storebestcoordinates"><code>ens::StoreBestCoordinates&lt;&gt;()</code></a>
+keeps the best parameters seen, which matters for stochastic optimizers
+that wander away from a good point.</li>
+<li><a href="https://www.ensmallen.org/docs.html#earlystopatminloss"><code>ens::EarlyStopAtMinLoss()</code></a>
+stops once the objective stops improving.</li>
+<li><a href="https://www.ensmallen.org/docs.html#progressbar"><code>ens::ProgressBar()</code></a>
+reports progress on long runs.</li>
+</ul>
+<p>The <a href="https://www.ensmallen.org/docs.html#built-in-callbacks">full set
+of built-in callbacks</a> is longer than this, and the same
+trailing-argument syntax accepts any number of them at once.</p>
+</div>
+<div id="writing-a-callback" class="section level1">
+<h1>Writing a callback</h1>
+<p>The callbacks above print. One of your own can keep what it sees
+instead, which is how the coordinates L-BFGS passes through become
+available in R.</p>
+<p><code>ensmallen</code> does not ask a callback to inherit from a base
+class. It inspects the type it is handed and calls the hooks that type
+defines, so a callback implements only the hooks it needs. The hook that
+records a path is
+<code>StepTaken(optimizer, function, coordinates)</code>, called once
+after the optimizer accepts a step, with <code>coordinates</code>
+holding the point that step arrived at. Two more hooks bracket the run:
+<code>BeginOptimization()</code> before the first step and
+<code>EndOptimization()</code> after the last, each receiving the
+coordinates as they stand at that moment. A hook may return
+<code>void</code> or <code>bool</code>. Returning <code>true</code> from
+one of the hooks called inside the loop, <code>StepTaken()</code> among
+them, ends the run. That is how <code>ens::EarlyStopAtMinLoss()</code>
+stops early.</p>
+<p>The recorder appends what it is handed to a matrix the caller owns,
+one column per point:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co">// Records the coordinates the optimizer passes through.</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="kw">class</span> PathRecorder</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>    <span class="co">// The matrix to fill has one row per coefficient and no columns yet.</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>    <span class="kw">explicit</span> PathRecorder<span class="op">(</span>arma<span class="op">::</span>mat<span class="op">&amp;</span> path<span class="op">)</span> <span class="op">:</span> path<span class="op">(</span>path<span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>    <span class="co">// Called once before the first step, with the starting coordinates.</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> OptimizerType<span class="op">,</span> <span class="kw">typename</span> FunctionType<span class="op">,</span> <span class="kw">typename</span> MatType<span class="op">&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="dt">void</span> BeginOptimization<span class="op">(</span>OptimizerType<span class="op">&amp;</span> <span class="co">/* optimizer */</span><span class="op">,</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>                           FunctionType<span class="op">&amp;</span> <span class="co">/* function */</span><span class="op">,</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>                           MatType<span class="op">&amp;</span> coordinates<span class="op">)</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>        Record<span class="op">(</span>coordinates<span class="op">);</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>    <span class="co">// Called after every accepted step, with the coordinates it reached.</span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> OptimizerType<span class="op">,</span> <span class="kw">typename</span> FunctionType<span class="op">,</span> <span class="kw">typename</span> MatType<span class="op">&gt;</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>    <span class="dt">void</span> StepTaken<span class="op">(</span>OptimizerType<span class="op">&amp;</span> <span class="co">/* optimizer */</span><span class="op">,</span></span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>                   FunctionType<span class="op">&amp;</span> <span class="co">/* function */</span><span class="op">,</span></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>                   <span class="at">const</span> MatType<span class="op">&amp;</span> coordinates<span class="op">)</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>        Record<span class="op">(</span>coordinates<span class="op">);</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>    <span class="co">// Called once the loop ends, with the coordinates being returned.</span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>    <span class="kw">template</span><span class="op">&lt;</span><span class="kw">typename</span> OptimizerType<span class="op">,</span> <span class="kw">typename</span> FunctionType<span class="op">,</span> <span class="kw">typename</span> MatType<span class="op">&gt;</span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>    <span class="dt">void</span> EndOptimization<span class="op">(</span>OptimizerType<span class="op">&amp;</span> <span class="co">/* optimizer */</span><span class="op">,</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>                         FunctionType<span class="op">&amp;</span> <span class="co">/* function */</span><span class="op">,</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>                         MatType<span class="op">&amp;</span> coordinates<span class="op">)</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>        Record<span class="op">(</span>coordinates<span class="op">);</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>    <span class="co">// Append one more column, unless it repeats the column already there.</span></span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>    <span class="dt">void</span> Record<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> coordinates<span class="op">)</span></span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec point <span class="op">=</span> arma<span class="op">::</span>vectorise<span class="op">(</span>coordinates<span class="op">);</span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>path<span class="op">.</span>n_cols <span class="op">&gt;</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a>            arma<span class="op">::</span>all<span class="op">(</span>path<span class="op">.</span>col<span class="op">(</span>path<span class="op">.</span>n_cols <span class="op">-</span> <span class="dv">1</span><span class="op">)</span> <span class="op">==</span> point<span class="op">))</span></span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a>        <span class="op">{</span></span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a>            <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb6-45"><a href="#cb6-45" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb6-46"><a href="#cb6-46" tabindex="-1"></a></span>
+<span id="cb6-47"><a href="#cb6-47" tabindex="-1"></a>        path<span class="op">.</span>insert_cols<span class="op">(</span>path<span class="op">.</span>n_cols<span class="op">,</span> point<span class="op">);</span></span>
+<span id="cb6-48"><a href="#cb6-48" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-49"><a href="#cb6-49" tabindex="-1"></a></span>
+<span id="cb6-50"><a href="#cb6-50" tabindex="-1"></a>    <span class="co">// The accumulated path, owned by the caller.</span></span>
+<span id="cb6-51"><a href="#cb6-51" tabindex="-1"></a>    arma<span class="op">::</span>mat<span class="op">&amp;</span> path<span class="op">;</span></span>
+<span id="cb6-52"><a href="#cb6-52" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>The hooks are templates because the optimizer type, the objective
+type, and the matrix type are fixed by the call site rather than by the
+callback. The two parameters each hook ignores are left unnamed, which
+keeps unused-parameter warnings from firing.</p>
+<p><code>StepTaken()</code> takes its coordinates by <code>const</code>
+reference and the other two do not, a difference the class has to
+reproduce exactly. <code>ensmallen</code> matches each hook against a
+signature declared in <code>callbacks/traits.hpp</code>, and one whose
+qualifiers differ is not recognized. Adding <code>const</code> to
+<code>BeginOptimization()</code> compiles cleanly and leaves the hook
+uncalled, so the mistake arrives as a missing column rather than a
+compiler error.</p>
+<p><code>EndOptimization()</code> is there because L-BFGS runs its
+convergence tests between taking a step and calling
+<code>StepTaken()</code>. A run stopping on the last of those tests
+never reports its final step, so the returned coordinates are recorded
+there instead. When the loop exits at the top of an iteration
+<code>StepTaken()</code> has already seen them and <code>Record()</code>
+drops the repeat. Without the hook the last column comes back a step
+short and matches the fit only to the convergence tolerance.</p>
+<p>The exported function pairs the recorder with the objective class
+from the <a href="logistic-regression.html#a-standalone-implementation">logistic
+regression vignette</a> and the same starting point
+<code>logistic_reg_lbfgs()</code> uses:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>arma<span class="op">::</span>mat logistic_reg_lbfgs_path<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                                  <span class="at">const</span> <span class="dt">double</span> lambda <span class="op">=</span> <span class="fl">0.0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>    LogisticRegressionFunction lrf<span class="op">(</span>X<span class="op">,</span> y<span class="op">,</span> lambda<span class="op">);</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>    ens<span class="op">::</span>L_BFGS lbfgs<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="co">// The same zero start logistic_reg_lbfgs() uses, so the two runs agree.</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    arma<span class="op">::</span>mat beta<span class="op">(</span>X<span class="op">.</span>n_cols<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>zeros<span class="op">);</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>    <span class="co">// One row per coefficient and no columns yet, for the recorder to fill.</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>    arma<span class="op">::</span>mat path<span class="op">(</span>X<span class="op">.</span>n_cols<span class="op">,</span> <span class="dv">0</span><span class="op">);</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>    lbfgs<span class="op">.</span>Optimize<span class="op">(</span>lrf<span class="op">,</span> beta<span class="op">,</span> PathRecorder<span class="op">(</span>path<span class="op">));</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>    <span class="cf">return</span> path<span class="op">;</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The recorder takes the position <code>ens::PrintLoss()</code>
+occupies above, handed over as a temporary that writes into
+<code>path</code>, which is declared beside it and outlives the call. A
+callback keeping its result inside itself, such as
+<code>ens::StoreBestCoordinates&lt;&gt;</code>, has to be a named object
+read after <code>Optimize()</code> returns.</p>
+<p>The package compiles the two blocks above into
+<code>logistic_reg_lbfgs_path()</code> from
+<code>src/example-logistic-regression-path.cpp</code>. That file carries
+its own copy of the helpers and of the objective class inside an
+anonymous <code>namespace { }</code>, since the L-BFGS file already
+defines a class of that name at namespace scope. All three functions
+also live together in one standalone file:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">system.file</span>(<span class="st">&quot;examples&quot;</span>, <span class="st">&quot;logistic-regression.cpp&quot;</span>, <span class="at">package =</span> <span class="st">&quot;RcppEnsmallen&quot;</span>)</span></code></pre></div>
+</div>
+<div id="recording-an-l-bfgs-path" class="section level1">
+<h1>Recording an L-BFGS path</h1>
+<p>For a run of <span class="math inline">\(k\)</span> steps the result
+is a <span class="math inline">\(p \times (k + 1)\)</span> matrix whose
+first column is the vector of zeros the optimizer starts from and whose
+remaining columns hold the coefficients after each accepted step.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>path <span class="ot">&lt;-</span> <span class="fu">logistic_reg_lbfgs_path</span>(X, y)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">dim</span>(path)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; [1]  4 11</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co"># The last column is the fit logistic_reg_lbfgs() returned earlier.</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(path[, <span class="fu">ncol</span>(path)] <span class="sc">-</span> mle))</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<p>Holding the first and third coefficients at their fitted values and
+varying the second and fourth over a grid gives a two-dimensional slice
+of the objective, which <code>contour()</code> turns into level sets.
+The window is wide enough to hold every recorded point, so the start at
+the origin is in frame.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Numerically stable softplus, the R counterpart of the C++ helper.</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>softplus <span class="ot">&lt;-</span> <span class="cf">function</span>(e) <span class="fu">pmax</span>(e, <span class="dv">0</span>) <span class="sc">+</span> <span class="fu">log1p</span>(<span class="fu">exp</span>(<span class="sc">-</span><span class="fu">abs</span>(e)))</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Beta1 and Beta3 stay at their fitted values, so only Beta2 and Beta4 vary.</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>base <span class="ot">&lt;-</span> X[, <span class="dv">1</span>] <span class="sc">*</span> mle[<span class="dv">1</span>] <span class="sc">+</span> X[, <span class="dv">3</span>] <span class="sc">*</span> mle[<span class="dv">3</span>]</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co"># Grid limits: centered on the optimum, wide enough to hold the whole path.</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>r2 <span class="ot">&lt;-</span> <span class="fl">1.15</span> <span class="sc">*</span> <span class="fu">max</span>(<span class="fu">abs</span>(path[<span class="dv">2</span>, ] <span class="sc">-</span> mle[<span class="dv">2</span>]))</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>r4 <span class="ot">&lt;-</span> <span class="fl">1.15</span> <span class="sc">*</span> <span class="fu">max</span>(<span class="fu">abs</span>(path[<span class="dv">4</span>, ] <span class="sc">-</span> mle[<span class="dv">4</span>]))</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>g2 <span class="ot">&lt;-</span> <span class="fu">seq</span>(mle[<span class="dv">2</span>] <span class="sc">-</span> r2, mle[<span class="dv">2</span>] <span class="sc">+</span> r2, <span class="at">length.out =</span> <span class="dv">55</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>g4 <span class="ot">&lt;-</span> <span class="fu">seq</span>(mle[<span class="dv">4</span>] <span class="sc">-</span> r4, mle[<span class="dv">4</span>] <span class="sc">+</span> r4, <span class="at">length.out =</span> <span class="dv">55</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co"># The negative log-likelihood at every point of the grid.</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">outer</span>(g2, g4, <span class="fu">Vectorize</span>(<span class="cf">function</span>(b2, b4) {</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>  eta <span class="ot">&lt;-</span> base <span class="sc">+</span> X[, <span class="dv">2</span>] <span class="sc">*</span> b2 <span class="sc">+</span> X[, <span class="dv">4</span>] <span class="sc">*</span> b4</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>  <span class="fu">sum</span>(<span class="fu">softplus</span>(eta) <span class="sc">-</span> y <span class="sc">*</span> eta)</span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>}))</span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="fu">contour</span>(g2, g4, Z, <span class="at">nlevels =</span> <span class="dv">14</span>, <span class="at">col =</span> <span class="st">&quot;grey65&quot;</span>, <span class="at">labcex =</span> <span class="fl">0.6</span>,</span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="fu">expression</span>(beta[<span class="dv">2</span>]), <span class="at">ylab =</span> <span class="fu">expression</span>(beta[<span class="dv">4</span>]),</span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">&quot;L-BFGS on the negative log-likelihood&quot;</span>)</span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co"># The optimum goes down first so the last few steps, which land on top of it,</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co"># stay visible.</span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a><span class="fu">points</span>(mle[<span class="dv">2</span>], mle[<span class="dv">4</span>], <span class="at">col =</span> <span class="st">&quot;#c0392b&quot;</span>, <span class="at">pch =</span> <span class="dv">4</span>, <span class="at">cex =</span> <span class="fl">1.8</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a><span class="fu">lines</span>(path[<span class="dv">2</span>, ], path[<span class="dv">4</span>, ], <span class="at">col =</span> <span class="st">&quot;#1b6ca8&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a><span class="fu">points</span>(path[<span class="dv">2</span>, ], path[<span class="dv">4</span>, ], <span class="at">col =</span> <span class="st">&quot;#1b6ca8&quot;</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">cex =</span> <span class="fl">0.7</span>)</span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="fu">points</span>(path[<span class="dv">2</span>, <span class="dv">1</span>], path[<span class="dv">4</span>, <span class="dv">1</span>], <span class="at">col =</span> <span class="st">&quot;#1b6ca8&quot;</span>, <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">1.8</span>)</span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>, <span class="at">bg =</span> <span class="st">&quot;white&quot;</span>, <span class="at">box.col =</span> <span class="st">&quot;grey80&quot;</span>, <span class="at">cex =</span> <span class="fl">0.8</span>,</span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;Start&quot;</span>, <span class="st">&quot;L-BFGS path&quot;</span>, <span class="st">&quot;Optimum&quot;</span>),</span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;#1b6ca8&quot;</span>, <span class="st">&quot;#1b6ca8&quot;</span>, <span class="st">&quot;#c0392b&quot;</span>),</span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">16</span>, <span class="dv">4</span>), <span class="at">lty =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="dv">1</span>, <span class="cn">NA</span>))</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="Contour plot of the negative log-likelihood over the second and fourth coefficients, with the other two held at their fitted values. The level sets are closed curves nested around a single interior minimum, marked with a red cross. A blue line runs from an open circle at the origin up and to the right across the level sets, joining filled points whose spacing shrinks as they approach the cross, where the line ends." /></p>
+<p>The level sets are closed curves nested around one interior minimum.
+Restricting a convex function to two of its arguments leaves a convex
+function, so the slice inherits the single basin of the full surface.
+That is the shape the logistic regression vignette relies on when it <a href="logistic-regression.html#a-standalone-implementation">starts from
+a vector of zeros</a>.</p>
+<p>The path runs through all <span class="math inline">\(p\)</span>
+coefficients and the plot draws two, so points close together here can
+be further apart in the coordinates not shown. The surface also fixes
+the first and third coefficients at their fitted values, which the early
+iterates had not reached. The contour under a point is therefore not the
+objective value the optimizer saw there.</p>
+<p>The first step covers most of the distance and the later ones crowd
+together around the optimum. L-BFGS stops once the objective stops
+improving rather than after a fixed number of iterations, which is why
+<code>dim(path)</code> reports around a dozen columns instead of
+hundreds.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

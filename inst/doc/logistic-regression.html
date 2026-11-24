@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+
+<html lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="James Joseph Balamuta" />
+
+
+<title>Solving Logistic Regression using Numeric Optimization</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+<style type="text/css">
+p.abstract{
+text-align: center;
+font-weight: bold;
+}
+div.abstract{
+margin: auto;
+width: 90%;
+}
+</style>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Solving Logistic Regression using Numeric
+Optimization</h1>
+<h4 class="author">James Joseph Balamuta</h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+<p>In this vignette, we build a logistic regression solver with
+RcppEnsmallen one piece at a time. We start from the likelihood, write
+the objective function as a standalone C++ file, check the answer
+against <code>glm()</code>, add a ridge penalty, switch to a mini-batch
+optimizer, and finish by moving the code into an R package.</p>
+</div>
+
+
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>The <a href="using-rcppensmallen.html">linear regression vignette</a>
+minimized the residual sum of squares, a problem that also has a
+closed-form solution. Logistic regression does not. There is no
+closed-form formula that returns the maximum likelihood estimate, so the
+coefficients have to be found by iteration, which is the problem <a href="https://www.ensmallen.org/docs.html"><code>ensmallen</code></a> is
+built to solve.</p>
+<p>This vignette develops the solver step by step. Each piece of C++
+shown below is a fragment of one file, and the finished file is included
+with the package:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">system.file</span>(<span class="st">&quot;examples&quot;</span>, <span class="st">&quot;logistic-regression.cpp&quot;</span>, <span class="at">package =</span> <span class="st">&quot;RcppEnsmallen&quot;</span>)</span></code></pre></div>
+<p>The same code is also compiled into the package as
+<code>logistic_reg_lbfgs()</code> and <code>logistic_reg_adam()</code>.
+Because compiling C++ is slow, this vignette displays the source without
+rebuilding it and calls those precompiled functions to produce the
+numbers. A third function built on the same objective,
+<code>logistic_reg_lbfgs_path()</code>, records the points the optimizer
+passes through and is developed in <a href="watching-an-optimizer.html">Watching an Optimizer Run with
+Callbacks</a>.</p>
+</div>
+<div id="the-objective-function" class="section level1">
+<h1>The objective function</h1>
+<p>The design matrix is <span class="math inline">\(\mathbf{X} \in
+\mathbb{R}^{n \times p}\)</span> with entries <span class="math inline">\(X_{ij}\)</span>, the coefficient vector is <span class="math inline">\(\beta \in \mathbb{R}^{p}\)</span>, and the
+response is <span class="math inline">\(\mathbf{y} \in \{0,
+1\}^{n}\)</span>. Indices run <span class="math inline">\(i = 1, \dots,
+n\)</span> over observations and <span class="math inline">\(j = 1,
+\dots, p\)</span> over coefficients, so <span class="math inline">\(p\)</span> is the coefficient count throughout and
+fitted probabilities get their own symbol below. An intercept is a
+column of ones inside <span class="math inline">\(\mathbf{X}\)</span>
+rather than a separate term.</p>
+<p>The linear predictor <span class="math inline">\(\eta =
+\mathbf{X}\beta \in \mathbb{R}^{n}\)</span> collapses the <span class="math inline">\(p\)</span> coefficients into one number per
+observation:</p>
+<p><span class="math display">\[\eta_i = \sum_{j=1}^{p} X_{ij}\,
+\beta_j, \qquad i = 1, \dots, n\]</span></p>
+<p>Each response <span class="math inline">\(y_i\)</span> is Bernoulli
+with success probability <span class="math inline">\(\sigma(\eta_i)\)</span>, where</p>
+<p><span class="math display">\[\sigma(\eta_i) = \frac{1}{1 +
+e^{-\eta_i}}\]</span></p>
+<p>is the logistic function. It acts elementwise, so <span class="math inline">\(\pi = \sigma(\eta) \in (0, 1)^{n}\)</span> is the
+vector of fitted probabilities, one per row of <span class="math inline">\(\mathbf{X}\)</span>. In GLM terms this is the mean
+of the response, the inverse link applied to the linear predictor.</p>
+<p>Each observation contributes the Bernoulli probability <span class="math inline">\(\pi_i^{\,y_i}\left(1 - \pi_i\right)^{1 -
+y_i}\)</span>, and the responses are independent, so the likelihood is
+their product:</p>
+<p><span class="math display">\[L(\beta) = \prod_{i=1}^{n}
+\pi_i^{\,y_i}\left(1 - \pi_i\right)^{1 - y_i}\]</span></p>
+<p>Taking logs turns that product into a sum, which brings the <span class="math inline">\(n\)</span> contributions back down to a single
+number:</p>
+<p><span class="math display">\[\ell(\beta) = \sum_{i=1}^{n} \left[ y_i
+\log \pi_i + (1 - y_i)\log\left(1 - \pi_i\right) \right] \in
+\mathbb{R}\]</span></p>
+<p>The coefficients are still hidden inside <span class="math inline">\(\pi_i = \sigma(\eta_i)\)</span>. Substituting the
+logistic function collapses the two logarithms into the linear predictor
+and a single softplus term:</p>
+<p><span class="math display">\[\ell(\beta) = \sum_{i=1}^{n} \left[ y_i
+\eta_i - \log\left(1 + e^{\eta_i}\right) \right] \in
+\mathbb{R}\]</span></p>
+<p>Optimizers minimize, so the objective is the <em>negative</em>
+log-likelihood, also a scalar:</p>
+<p><span class="math display">\[f(\beta) = \sum_{i=1}^{n} \left[
+\log\left(1 + e^{\eta_i}\right) - y_i \eta_i \right] \in
+\mathbb{R}\]</span></p>
+<p>Without indices, the sum over observations is a product with the
+vector of ones <span class="math inline">\(\mathbf{1} \in
+\mathbb{R}^{n}\)</span>, and <span class="math inline">\(\log(1 +
+e^{\eta})\)</span> acts elementwise on <span class="math inline">\(\eta\)</span> the way <span class="math inline">\(\sigma\)</span> does:</p>
+<p><span class="math display">\[f(\beta) =
+\mathbf{1}^{\top}\bigl[\log\left(1 + e^{\eta}\right)\bigr] -
+\mathbf{y}^{\top}\eta \in \mathbb{R}\]</span></p>
+<p>Differentiating with respect to one coefficient at a time gives <span class="math inline">\(p\)</span> partial derivatives, each of them a sum
+over all <span class="math inline">\(n\)</span> observations:</p>
+<p><span class="math display">\[\frac{\partial f}{\partial \beta_j} =
+\sum_{i=1}^{n} X_{ij}\left(\pi_i - y_i\right), \qquad j = 1, \dots,
+p\]</span></p>
+<p>Stacking those <span class="math inline">\(p\)</span> partials into a
+column is exactly what a transposed matrix times a vector does, which
+gives the compact form: the transposed design matrix times the residual
+<span class="math inline">\(\pi - \mathbf{y}\)</span> between the fitted
+probabilities and the observed responses.</p>
+<p><span class="math display">\[\nabla f(\beta) =
+\mathbf{X}^{\top}\left(\pi - \mathbf{y}\right) \in
+\mathbb{R}^{p}\]</span></p>
+<p>Reading the dimensions of that product, <span class="math inline">\((p \times n)\)</span> times <span class="math inline">\((n \times 1)\)</span>, makes the bookkeeping
+explicit: the sum over <span class="math inline">\(i\)</span> collapses
+the observation dimension and leaves a <span class="math inline">\(p\)</span>-vector shaped like <span class="math inline">\(\beta\)</span> itself, which is what an optimizer
+needs back. The C++ below mirrors this, with <code>beta</code> and the
+gradient <code>g</code> both held as <code>X.n_cols</code> by 1
+matrices. The steps behind these expressions are collected in the <a href="#derivation">derivation</a> at the end of the vignette.</p>
+<p>Unlike the linear regression case, setting this to zero does not
+isolate <span class="math inline">\(\beta\)</span>. That is why we need
+an optimizer.</p>
+</div>
+<div id="a-note-on-numerical-stability" class="section level1">
+<h1>A note on numerical stability</h1>
+<p>Translating <span class="math inline">\(\log(1 + e^{\eta})\)</span>
+directly into code is the most common way a hand-written logistic
+objective misbehaves. In double precision, <span class="math inline">\(e^{\eta}\)</span> overflows to <code>Inf</code>
+once <span class="math inline">\(\eta\)</span> exceeds roughly 710, so
+the objective reports <code>Inf</code> even though its true value is
+very close to <span class="math inline">\(\eta\)</span> itself:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>eta <span class="ot">&lt;-</span> <span class="dv">800</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(eta))   <span class="co"># naive</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; [1] Inf</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">max</span>(eta, <span class="dv">0</span>) <span class="sc">+</span> <span class="fu">log1p</span>(<span class="fu">exp</span>(<span class="sc">-</span><span class="fu">abs</span>(eta)))   <span class="co"># stable</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt; [1] 800</span></span></code></pre></div>
+<p>An <code>Inf</code> here is not usually fatal. The L-BFGS line search
+fails its acceptance test on an infinite objective and shrinks the step,
+so the optimizer backs off rather than crashing; a <code>NaN</code> is
+the one that stops the search. What you lose is the <em>information</em>
+in that region. An objective that reports <code>Inf</code> instead of
+800 cannot tell a line search which of two bad points is less bad, so
+the search is steered by a value that no longer separates them. Whether
+that changes the final answer depends on the data and the starting
+point.</p>
+<p>The standard fix rewrites the expression so the exponent is never
+positive:</p>
+<p><span class="math display">\[\log\left(1 + e^{\eta}\right) =
+\max(\eta, 0) + \log\left(1 + e^{-|\eta|}\right)\]</span></p>
+<p>Both sides agree mathematically, but the right-hand side cannot
+overflow. Armadillo provides <code>log1p()</code> elementwise, which is
+also more accurate than <code>log(1 + x)</code> when <code>x</code> is
+small.</p>
+<p>The logistic function itself needs no special treatment. A very
+negative <span class="math inline">\(\eta\)</span> sends
+<code>exp(-eta)</code> to <code>Inf</code> and the result to 0; a very
+positive <span class="math inline">\(\eta\)</span> sends it to 0 and the
+result to 1. Both are the correct answers, so only the softplus term
+needs rewriting.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co">// Numerically stable softplus, i.e. log(1 + exp(eta)), computed elementwise.</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="kw">inline</span> arma<span class="op">::</span>vec softplus<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> eta<span class="op">)</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="cf">return</span> arma<span class="op">::</span>max<span class="op">(</span>eta<span class="op">,</span> arma<span class="op">::</span>zeros<span class="op">&lt;</span>arma<span class="op">::</span>vec<span class="op">&gt;(</span>eta<span class="op">.</span>n_elem<span class="op">))</span> <span class="op">+</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>        arma<span class="op">::</span>log1p<span class="op">(</span>arma<span class="op">::</span>exp<span class="op">(-</span>arma<span class="op">::</span>abs<span class="op">(</span>eta<span class="op">)));</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">// Logistic function, i.e. 1 / (1 + exp(-eta)), computed elementwise.</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="kw">inline</span> arma<span class="op">::</span>vec logistic<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> eta<span class="op">)</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    <span class="cf">return</span> <span class="fl">1.0</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1.0</span> <span class="op">+</span> arma<span class="op">::</span>exp<span class="op">(-</span>eta<span class="op">));</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Both helpers are used by the class below: <code>softplus(eta)</code>
+computes <span class="math inline">\(\log(1 + e^{\eta})\)</span> and
+<code>logistic(eta)</code> computes <span class="math inline">\(\pi\)</span>.</p>
+</div>
+<div id="a-standalone-implementation" class="section level1">
+<h1>A standalone implementation</h1>
+<p>Every standalone file using <code>RcppEnsmallen</code> opens with the
+same two lines. The attribute tells <code>Rcpp::sourceCpp()</code> where
+to find the headers.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;RcppEnsmallen.h&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppEnsmallen)]]</span></span></code></pre></div>
+<p><code>ensmallen</code> asks for the objective as a class with member
+functions of specific names and signatures. For a differentiable
+function like this one:</p>
+<ul>
+<li><code>Evaluate()</code>: the value of the objective at the given
+parameters.</li>
+<li><code>Gradient()</code>: the gradient at the given parameters.</li>
+<li><code>EvaluateWithGradient()</code>: both at once. Optional, but
+usually faster.</li>
+</ul>
+<p>The class below writes <code>Evaluate()</code> and
+<code>Gradient()</code> separately, one for each of the two formulas
+above.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="kw">class</span> LogisticRegressionFunction</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="co">// Construct the object with the given design matrix, responses, and</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="co">// ridge penalty.</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>    LogisticRegressionFunction<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>                               <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>                               <span class="at">const</span> <span class="dt">double</span> lambda<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>    X<span class="op">(</span>X<span class="op">),</span> y<span class="op">(</span>y<span class="op">),</span> lambda<span class="op">(</span>lambda<span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>    <span class="co">// Return the objective function for model parameters beta.</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>    <span class="co">// ensmallen passes beta as a p x 1 matrix, one entry per column of X.</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>    <span class="dt">double</span> Evaluate<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">)</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>        <span class="co">// The n x 1 linear predictor.</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec eta <span class="op">=</span> X <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>        <span class="co">// One number: the loss summed over rows, plus the ridge penalty. Its</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>        <span class="co">// 0.5 is what makes the penalty differentiate to lambda * beta below.</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>        <span class="cf">return</span> arma<span class="op">::</span>accu<span class="op">(</span>softplus<span class="op">(</span>eta<span class="op">)</span> <span class="op">-</span> y <span class="op">%</span> eta<span class="op">)</span> <span class="op">+</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>            <span class="fl">0.5</span> <span class="op">*</span> lambda <span class="op">*</span> arma<span class="op">::</span>accu<span class="op">(</span>arma<span class="op">::</span>square<span class="op">(</span>beta<span class="op">));</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>    <span class="co">// Compute the gradient for model parameters beta.</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>    <span class="dt">void</span> Gradient<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">,</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> g<span class="op">)</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec eta <span class="op">=</span> X <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a>        <span class="co">// Nothing is returned; the p x 1 gradient is written into g.</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a>        g <span class="op">=</span> X<span class="op">.</span>t<span class="op">()</span> <span class="op">*</span> <span class="op">(</span>logistic<span class="op">(</span>eta<span class="op">)</span> <span class="op">-</span> y<span class="op">)</span> <span class="op">+</span> lambda <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a>    <span class="co">// The design matrix, held by const reference so no copy is made.</span></span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a>    <span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">;</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>    <span class="co">// The responses to each data point.</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a>    <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">;</span></span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a>    <span class="co">// The ridge penalty applied to every coefficient.</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">double</span> lambda<span class="op">;</span></span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>Both functions compute <code>eta</code> and then walk over it again.
+L-BFGS almost always wants the objective and the gradient at the same
+point, so the work gets done twice. Adding
+<code>EvaluateWithGradient()</code> shares one pass between them, and
+<code>ensmallen</code> will prefer it automatically wherever it
+helps:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>    <span class="co">// Compute both at once, reusing the single pass over eta.</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>    <span class="dt">double</span> EvaluateWithGradient<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">,</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> g<span class="op">)</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec eta <span class="op">=</span> X <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>        g <span class="op">=</span> X<span class="op">.</span>t<span class="op">()</span> <span class="op">*</span> <span class="op">(</span>logistic<span class="op">(</span>eta<span class="op">)</span> <span class="op">-</span> y<span class="op">)</span> <span class="op">+</span> lambda <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>        <span class="cf">return</span> arma<span class="op">::</span>accu<span class="op">(</span>softplus<span class="op">(</span>eta<span class="op">)</span> <span class="op">-</span> y <span class="op">%</span> eta<span class="op">)</span> <span class="op">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>            <span class="fl">0.5</span> <span class="op">*</span> lambda <span class="op">*</span> arma<span class="op">::</span>accu<span class="op">(</span>arma<span class="op">::</span>square<span class="op">(</span>beta<span class="op">));</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+<p>Supplying all three functions is allowed and is what the included
+file does. More detail is available on the <a href="https://www.ensmallen.org/docs.html#differentiable-functions"><code>ensmallen</code>
+documentation page for differentiable functions</a>.</p>
+<p>With the class in place, the exported function picks an optimizer and
+runs it. Here that is <a href="https://www.ensmallen.org/docs.html#l-bfgs"><code>ens::L_BFGS</code></a>;
+the <a href="https://www.ensmallen.org/docs.html#optimizer-documentation">optimizer
+index</a> lists the alternatives and the arguments each one takes.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>arma<span class="op">::</span>vec logistic_reg_lbfgs<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                             <span class="at">const</span> <span class="dt">double</span> lambda <span class="op">=</span> <span class="fl">0.0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>    <span class="co">// Construct the objective function.</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>    LogisticRegressionFunction lrf<span class="op">(</span>X<span class="op">,</span> y<span class="op">,</span> lambda<span class="op">);</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="co">// Create the L-BFGS optimizer with default parameters. The ens::L_BFGS</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>    <span class="co">// type can be replaced with any ensmallen optimizer that can handle</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="co">// differentiable functions.</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>    ens<span class="op">::</span>L_BFGS lbfgs<span class="op">;</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>    <span class="co">// The objective is convex, so a deterministic start of zeros reaches the</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>    <span class="co">// same optimum a random start would.</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>    arma<span class="op">::</span>mat beta<span class="op">(</span>X<span class="op">.</span>n_cols<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>zeros<span class="op">);</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>    <span class="co">// Run the optimization.</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>    lbfgs<span class="op">.</span>Optimize<span class="op">(</span>lrf<span class="op">,</span> beta<span class="op">);</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>    <span class="cf">return</span> beta<span class="op">;</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The linear regression vignette starts L-BFGS from a random draw. Here
+we start from a vector of zeros instead, because the negative
+log-likelihood of a logistic regression is convex: there is a single
+optimum, every starting point reaches it, and starting from a fixed one
+makes the result reproducible. A two-dimensional slice of this
+objective, contoured in <a href="watching-an-optimizer.html">Watching an
+Optimizer Run with Callbacks</a>, shows level sets nested around a
+single interior minimum.</p>
+<p><strong>Note:</strong> the <code>// [[Rcpp::export]]</code> attribute
+has to appear in the <code>.cpp</code> file Rcpp compiles, but the class
+does not have to. Moving the class into a header beside it and including
+it with <code>#include</code> works under both <code>sourceCpp()</code>
+and a package build. A class used by more than one optimizer usually
+belongs in a header. The examples here keep each file self contained so
+that one file can be read on its own.</p>
+</div>
+<div id="running-it-standalone" class="section level1">
+<h1>Running it standalone</h1>
+<p>Saved as <code>logistic-regression.cpp</code>, the file is compiled
+and loaded with a single call:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>Rcpp<span class="sc">::</span><span class="fu">sourceCpp</span>(<span class="st">&quot;logistic-regression.cpp&quot;</span>)</span></code></pre></div>
+<p>That defines <code>logistic_reg_lbfgs()</code> in the global
+environment. The remainder of this vignette instead calls the copy
+already compiled into <code>RcppEnsmallen</code>. The objective classes
+there carry the same code as the ones shown here. What the included
+files add is scaffolding around them, chiefly a block of
+<code>Rcpp::stop()</code> argument checks at the top of each exported
+function. Those checks are omitted above so the optimizer setup stays in
+view.</p>
+</div>
+<div id="verifying-the-result" class="section level1">
+<h1>Verifying the result</h1>
+<p>Simulating data from known parameters checks two things at once: that
+the parameters are recovered, and that an established implementation
+agrees. <code>glm()</code> maximizes exactly the likelihood we just
+minimized the negative of, so the two should agree closely.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">5000</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.7</span>, <span class="sc">-</span><span class="fl">0.5</span>, <span class="fl">1.2</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">length</span>(beta)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co"># Design matrix with an intercept column</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> (p <span class="sc">-</span> <span class="dv">1</span>)), <span class="at">ncol =</span> p <span class="sc">-</span> <span class="dv">1</span>))</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co"># Bernoulli responses with the logistic link</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="at">size =</span> <span class="dv">1</span>, <span class="at">prob =</span> <span class="dv">1</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(<span class="sc">-</span>(X <span class="sc">%*%</span> beta))))</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>coefs_ens <span class="ot">&lt;-</span> <span class="fu">logistic_reg_lbfgs</span>(X, y)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>coefs_glm <span class="ot">&lt;-</span> <span class="fu">glm.fit</span>(X, y, <span class="at">family =</span> <span class="fu">binomial</span>())<span class="sc">$</span>coefficients</span></code></pre></div>
+<table>
+<caption>Comparison of Estimated Coefficients</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Truth</th>
+<th align="right">ensmallen</th>
+<th align="right">glm.fit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Beta1</td>
+<td align="right">-1.0</td>
+<td align="right">-0.9497930</td>
+<td align="right">-0.9497930</td>
+</tr>
+<tr class="even">
+<td align="left">Beta2</td>
+<td align="right">0.7</td>
+<td align="right">0.7185603</td>
+<td align="right">0.7185603</td>
+</tr>
+<tr class="odd">
+<td align="left">Beta3</td>
+<td align="right">-0.5</td>
+<td align="right">-0.4012293</td>
+<td align="right">-0.4012293</td>
+</tr>
+<tr class="even">
+<td align="left">Beta4</td>
+<td align="right">1.2</td>
+<td align="right">1.1332602</td>
+<td align="right">1.1332602</td>
+</tr>
+</tbody>
+</table>
+<p>The two estimates agree far more tightly than either agrees with the
+truth. Both are computing the same maximum likelihood estimate, and the
+gap to the true parameters is sampling error, not optimizer error.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(coefs_ens) <span class="sc">-</span> coefs_glm))</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt; [1] 4.890248e-09</span></span></code></pre></div>
+</div>
+<div id="adding-regularization" class="section level1">
+<h1>Adding regularization</h1>
+<p>Maximum likelihood asks only that the coefficients fit the data in
+front of it. The objective from earlier is that request written as
+something to minimize:</p>
+<p><span class="math display">\[f(\beta) = \sum_{i=1}^{n} \left[
+\log\left(1 + e^{\eta_i}\right) - y_i \eta_i \right] \in
+\mathbb{R}\]</span></p>
+<p>Nothing in it prefers small coefficients. When a predictor separates
+the two classes the likelihood keeps improving as that coefficient
+grows, and the estimate runs off toward infinity.</p>
+<p>Regularization adds a second term that charges for size:</p>
+<p><span class="math display">\[f_{\lambda}(\beta) = f(\beta) +
+r(\beta)\]</span></p>
+<p>The first term measures fit and the second measures the coefficients
+themselves, so minimizing the sum trades one against the other. The
+optimizer is unaffected by the change: it still minimizes a single
+scalar, and a differentiable <span class="math inline">\(r\)</span>
+contributes its own derivative to the gradient and nothing else.</p>
+<p>Ridge regression takes <span class="math inline">\(r\)</span> to be
+the squared length of the coefficient vector, scaled by a chosen <span class="math inline">\(\lambda \geq 0\)</span>:</p>
+<p><span class="math display">\[r(\beta) = \frac{\lambda}{2}
+\sum_{j=1}^{p} \beta_j^{2} = \frac{\lambda}{2}\, \beta^{\top}\beta,
+\qquad \beta^{\top}\beta = \lVert\beta\rVert^{2}\]</span></p>
+<p>The penalty is an inner product of <span class="math inline">\(\beta\)</span> with itself, <span class="math inline">\((1 \times p)\)</span> times <span class="math inline">\((p \times 1)\)</span>, so like the fit term it is
+one number. Writing both out gives the penalized objective:</p>
+<p><span class="math display">\[f_{\lambda}(\beta) = \sum_{i=1}^{n}
+\left[ \log\left(1 + e^{\eta_i}\right) - y_i \eta_i \right] +
+\frac{\lambda}{2} \sum_{j=1}^{p} \beta_j^{2} \in \mathbb{R}\]</span></p>
+<p>The first sum runs over the <span class="math inline">\(n\)</span>
+observations and the second over the <span class="math inline">\(p\)</span> coefficients. Each coefficient carries
+exactly one penalty term of its own, so differentiating adds one entry
+per coefficient and mixes nothing:</p>
+<p><span class="math display">\[\frac{\partial f_{\lambda}}{\partial
+\beta_j} = \sum_{i=1}^{n} X_{ij}\left(\pi_i - y_i\right) + \lambda
+\beta_j, \qquad j = 1, \dots, p\]</span></p>
+<p><span class="math display">\[\nabla f_{\lambda}(\beta) =
+\mathbf{X}^{\top}\left(\pi - \mathbf{y}\right) + \lambda \beta \in
+\mathbb{R}^{p}\]</span></p>
+<p>Both added terms are already in the class above: the
+<code>0.5 * lambda * arma::accu(arma::square(beta))</code> in
+<code>Evaluate()</code> and the <code>lambda * beta</code> in
+<code>Gradient()</code>. The step from one to the other is in <a href="#the-ridge-term">the ridge term</a> at the end.</p>
+<p>Larger penalties pull the coefficients toward zero, with the
+unpenalized <code>glm.fit()</code> estimate carried alongside as the
+benchmark each column is drifting away from:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>lambdas <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">1000</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>ridge_fits <span class="ot">&lt;-</span> <span class="fu">sapply</span>(lambdas, <span class="cf">function</span>(l) <span class="fu">logistic_reg_lbfgs</span>(X, y, <span class="at">lambda =</span> l))</span></code></pre></div>
+<table>
+<caption>Ridge Shrinkage of the Coefficient Vector</caption>
+<colgroup>
+<col width="25%" />
+<col width="11%" />
+<col width="11%" />
+<col width="13%" />
+<col width="14%" />
+<col width="15%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">lambda = 0</th>
+<th align="right">lambda = 1</th>
+<th align="right">lambda = 10</th>
+<th align="right">lambda = 100</th>
+<th align="right">lambda = 1000</th>
+<th align="right">glm.fit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Beta1</td>
+<td align="right">-0.9498</td>
+<td align="right">-0.9476</td>
+<td align="right">-0.9287</td>
+<td align="right">-0.7911</td>
+<td align="right">-0.3921</td>
+<td align="right">-0.9498</td>
+</tr>
+<tr class="even">
+<td align="left">Beta2</td>
+<td align="right">0.7186</td>
+<td align="right">0.7167</td>
+<td align="right">0.7007</td>
+<td align="right">0.5859</td>
+<td align="right">0.2760</td>
+<td align="right">0.7186</td>
+</tr>
+<tr class="odd">
+<td align="left">Beta3</td>
+<td align="right">-0.4012</td>
+<td align="right">-0.4002</td>
+<td align="right">-0.3912</td>
+<td align="right">-0.3262</td>
+<td align="right">-0.1506</td>
+<td align="right">-0.4012</td>
+</tr>
+<tr class="even">
+<td align="left">Beta4</td>
+<td align="right">1.1333</td>
+<td align="right">1.1303</td>
+<td align="right">1.1052</td>
+<td align="right">0.9243</td>
+<td align="right">0.4351</td>
+<td align="right">1.1333</td>
+</tr>
+<tr class="odd">
+<td align="left">Squared norm</td>
+<td align="right">2.8637</td>
+<td align="right">2.8494</td>
+<td align="right">2.7280</td>
+<td align="right">1.9298</td>
+<td align="right">0.4419</td>
+<td align="right">2.8637</td>
+</tr>
+<tr class="even">
+<td align="left">Max deviation from MLE</td>
+<td align="right">0.0000</td>
+<td align="right">0.0029</td>
+<td align="right">0.0281</td>
+<td align="right">0.2090</td>
+<td align="right">0.6981</td>
+<td align="right">0.0000</td>
+</tr>
+</tbody>
+</table>
+<p>The same numbers read more directly as paths. Each coefficient is
+pulled toward zero as the penalty grows, and none of them crosses
+it:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;#1b6ca8&quot;</span>, <span class="st">&quot;#c0392b&quot;</span>, <span class="st">&quot;#2e8b57&quot;</span>, <span class="st">&quot;#8e44ad&quot;</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">matplot</span>(<span class="fu">seq_along</span>(lambdas), <span class="fu">t</span>(ridge_fits), <span class="at">type =</span> <span class="st">&quot;b&quot;</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">lty =</span> <span class="dv">1</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>        <span class="at">col =</span> cols, <span class="at">xaxt =</span> <span class="st">&quot;n&quot;</span>, <span class="at">xlab =</span> <span class="fu">expression</span>(lambda),</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">&quot;Coefficient&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Ridge shrinkage&quot;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> <span class="fu">seq_along</span>(lambdas), <span class="at">labels =</span> lambdas)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;grey70&quot;</span>, <span class="at">lty =</span> <span class="dv">3</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="fu">legend</span>(<span class="fu">par</span>(<span class="st">&quot;usr&quot;</span>)[<span class="dv">2</span>], <span class="fu">par</span>(<span class="st">&quot;usr&quot;</span>)[<span class="dv">4</span>], <span class="at">xpd =</span> <span class="cn">NA</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>, <span class="at">cex =</span> <span class="fl">0.85</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">paste0</span>(<span class="st">&quot;Beta&quot;</span>, <span class="fu">seq_len</span>(<span class="fu">nrow</span>(ridge_fits))),</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>       <span class="at">col =</span> cols, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">pch =</span> <span class="dv">16</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="Four coefficient paths plotted against lambda on an index axis. Every path moves toward zero as lambda grows from 0 to 1000, with the two positive coefficients falling and the two negative ones rising, and none crossing zero." /></p>
+<p>Lambda is drawn on an index axis rather than a logarithmic one
+because the sweep includes <span class="math inline">\(\lambda =
+0\)</span>, which has no place on a log scale.</p>
+<p><code>glm.fit()</code> cannot be asked for the same thing. Its
+arguments are</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">names</span>(<span class="fu">formals</span>(stats<span class="sc">::</span>glm.fit))</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co">#&gt;  [1] &quot;x&quot;           &quot;y&quot;           &quot;weights&quot;     &quot;start&quot;       &quot;etastart&quot;   </span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt;  [6] &quot;mustart&quot;     &quot;offset&quot;      &quot;family&quot;      &quot;control&quot;     &quot;intercept&quot;  </span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; [11] &quot;singular.ok&quot;</span></span></code></pre></div>
+<p>with no penalty, ridge, or <code>lambda</code> among them, and
+<code>glm()</code> has none either. There is therefore no penalized
+counterpart to set against the fits for <span class="math inline">\(\lambda &gt; 0\)</span>: the <code>glm.fit</code>
+column of the table above holds the unpenalized estimate, carried across
+as the fixed reference the other columns drift away from. It is a
+like-for-like benchmark only where the penalty is switched off, at <span class="math inline">\(\lambda = 0\)</span>, where the objective is the
+plain negative log-likelihood that <code>glm.fit()</code> minimizes:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(ridge_fits[, <span class="dv">1</span>] <span class="sc">-</span> coefs_glm))</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; [1] 4.890248e-09</span></span></code></pre></div>
+<p>That is the same number the unpenalized comparison printed earlier,
+because with <span class="math inline">\(\lambda = 0\)</span> it is the
+same fit, and it is why the table rounds that column’s deviation to
+zero.</p>
+<p>Penalized GLMs in R normally come from the glmnet package rather than
+from a hand-written objective.</p>
+<p>The penalty above applies to every coefficient, the intercept
+included, because the function has no way of knowing which column of
+<code>X</code> holds the intercept. Applied statistics normally leaves
+the intercept unpenalized, since shrinking it pulls the fitted
+probabilities toward one half rather than toward the observed base rate.
+Adapting the class to skip a designated column is a small change to both
+<code>Evaluate()</code> and <code>Gradient()</code>.</p>
+</div>
+<div id="scaling-up-with-separable-functions" class="section level1">
+<h1>Scaling up with separable functions</h1>
+<p>L-BFGS touches all <span class="math inline">\(n\)</span> rows for
+every step. When that becomes too expensive, the mini-batch optimizers
+work from a small sample of rows at a time, but they need more from the
+objective than <code>Evaluate()</code> and <code>Gradient()</code>. A <a href="https://www.ensmallen.org/docs.html#differentiable-separable-functions"><em>separable</em>
+function</a> must also report how many data points it holds and be able
+to reorder them:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>NumFunctions()</code></td>
+<td>How many data points there are</td>
+</tr>
+<tr class="even">
+<td><code>Shuffle()</code></td>
+<td>Reorder the data between passes</td>
+</tr>
+<tr class="odd">
+<td><code>Evaluate(beta, begin, batchSize)</code></td>
+<td>Objective over one batch</td>
+</tr>
+<tr class="even">
+<td><code>Gradient(beta, begin, g, batchSize)</code></td>
+<td>Gradient over one batch</td>
+</tr>
+</tbody>
+</table>
+<p>The batch versions take a starting row and a batch length, and return
+results for the rows <code>[begin, begin + batchSize)</code>.
+<code>Evaluate()</code> returns the <strong>sum</strong> over that
+batch, not the mean.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co">// The same objective in separable form, which is what the mini-batch</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co">// optimizers require: ensmallen hands it one batch of rows at a time.</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">// There is no lambda here, so this is the unpenalized negative log-likelihood.</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="kw">class</span> LogisticRegressionSeparableFunction</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>    <span class="co">// Construct the object, copying the design matrix and responses.</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>    LogisticRegressionSeparableFunction<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>                                        <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>    X<span class="op">(</span>X<span class="op">),</span> y<span class="op">(</span>y<span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a>    <span class="co">// Return the number of separable functions, one per observation.</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a>    <span class="dt">size_t</span> NumFunctions<span class="op">()</span> <span class="at">const</span> <span class="op">{</span> <span class="cf">return</span> X<span class="op">.</span>n_rows<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a>    <span class="co">// Shuffle the order of the observations.</span></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a>    <span class="dt">void</span> Shuffle<span class="op">()</span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>uvec ordering <span class="op">=</span></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a>            arma<span class="op">::</span>shuffle<span class="op">(</span>arma<span class="op">::</span>regspace<span class="op">&lt;</span>arma<span class="op">::</span>uvec<span class="op">&gt;(</span><span class="dv">0</span><span class="op">,</span> X<span class="op">.</span>n_rows <span class="op">-</span> <span class="dv">1</span><span class="op">));</span></span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>        X <span class="op">=</span> X<span class="op">.</span>rows<span class="op">(</span>ordering<span class="op">);</span></span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>        y <span class="op">=</span> y<span class="op">.</span>elem<span class="op">(</span>ordering<span class="op">);</span></span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a>    <span class="co">// Return the objective summed over the batch [begin, begin + batchSize).</span></span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a>    <span class="co">// Note this is a sum, not a mean; ensmallen expects the former.</span></span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a>    <span class="dt">double</span> Evaluate<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">,</span></span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a>                    <span class="at">const</span> <span class="dt">size_t</span> begin<span class="op">,</span></span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a>                    <span class="at">const</span> <span class="dt">size_t</span> batchSize<span class="op">)</span></span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a>        <span class="co">// begin and batchSize index rows of X, so last is the final row used.</span></span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a>        <span class="at">const</span> <span class="dt">size_t</span> last <span class="op">=</span> begin <span class="op">+</span> batchSize <span class="op">-</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a>        <span class="co">// batchSize x 1 here, where the full-batch class had n x 1.</span></span>
+<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec eta <span class="op">=</span> X<span class="op">.</span>rows<span class="op">(</span>begin<span class="op">,</span> last<span class="op">)</span> <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec yBatch <span class="op">=</span> y<span class="op">.</span>subvec<span class="op">(</span>begin<span class="op">,</span> last<span class="op">);</span></span>
+<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a></span>
+<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a>        <span class="cf">return</span> arma<span class="op">::</span>accu<span class="op">(</span>softplus<span class="op">(</span>eta<span class="op">)</span> <span class="op">-</span> yBatch <span class="op">%</span> eta<span class="op">);</span></span>
+<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a></span>
+<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a>    <span class="co">// Compute the gradient over the batch [begin, begin + batchSize).</span></span>
+<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a>    <span class="dt">void</span> Gradient<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">,</span></span>
+<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a>                  <span class="at">const</span> <span class="dt">size_t</span> begin<span class="op">,</span></span>
+<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a>                  arma<span class="op">::</span>mat<span class="op">&amp;</span> g<span class="op">,</span></span>
+<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a>                  <span class="at">const</span> <span class="dt">size_t</span> batchSize<span class="op">)</span></span>
+<span id="cb16-44"><a href="#cb16-44" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb16-45"><a href="#cb16-45" tabindex="-1"></a>        <span class="at">const</span> <span class="dt">size_t</span> last <span class="op">=</span> begin <span class="op">+</span> batchSize <span class="op">-</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb16-46"><a href="#cb16-46" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>mat XBatch <span class="op">=</span> X<span class="op">.</span>rows<span class="op">(</span>begin<span class="op">,</span> last<span class="op">);</span></span>
+<span id="cb16-47"><a href="#cb16-47" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec yBatch <span class="op">=</span> y<span class="op">.</span>subvec<span class="op">(</span>begin<span class="op">,</span> last<span class="op">);</span></span>
+<span id="cb16-48"><a href="#cb16-48" tabindex="-1"></a></span>
+<span id="cb16-49"><a href="#cb16-49" tabindex="-1"></a>        <span class="co">// Still p x 1: a batch shortens the sum, not the parameter vector.</span></span>
+<span id="cb16-50"><a href="#cb16-50" tabindex="-1"></a>        g <span class="op">=</span> XBatch<span class="op">.</span>t<span class="op">()</span> <span class="op">*</span> <span class="op">(</span>logistic<span class="op">(</span>XBatch <span class="op">*</span> beta<span class="op">)</span> <span class="op">-</span> yBatch<span class="op">);</span></span>
+<span id="cb16-51"><a href="#cb16-51" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-52"><a href="#cb16-52" tabindex="-1"></a></span>
+<span id="cb16-53"><a href="#cb16-53" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb16-54"><a href="#cb16-54" tabindex="-1"></a>    <span class="co">// The design matrix, held by value so that Shuffle() can reorder it.</span></span>
+<span id="cb16-55"><a href="#cb16-55" tabindex="-1"></a>    arma<span class="op">::</span>mat X<span class="op">;</span></span>
+<span id="cb16-56"><a href="#cb16-56" tabindex="-1"></a>    <span class="co">// The responses to each data point, likewise held by value.</span></span>
+<span id="cb16-57"><a href="#cb16-57" tabindex="-1"></a>    arma<span class="op">::</span>vec y<span class="op">;</span></span>
+<span id="cb16-58"><a href="#cb16-58" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p>There is one structural difference from the full-batch class.
+<code>X</code> and <code>y</code> are stored <strong>by value</strong>
+rather than as <code>const</code> references, because
+<code>Shuffle()</code> rearranges them in place and cannot do that
+through a <code>const</code> reference.</p>
+<p>Running <a href="https://www.ensmallen.org/docs.html#adam">Adam</a>
+on this class looks much like running L-BFGS, with two details that
+catch people out.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>arma<span class="op">::</span>vec logistic_reg_adam<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">,</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>                            <span class="at">const</span> <span class="dt">size_t</span> batch_size <span class="op">=</span> <span class="dv">32</span><span class="op">,</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>                            <span class="at">const</span> <span class="dt">size_t</span> max_epochs <span class="op">=</span> <span class="dv">50</span><span class="op">,</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>                            <span class="at">const</span> <span class="dt">double</span> step_size <span class="op">=</span> <span class="fl">0.05</span><span class="op">,</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>                            <span class="at">const</span> <span class="dt">bool</span> verbose <span class="op">=</span> <span class="kw">false</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>    LogisticRegressionSeparableFunction lrf<span class="op">(</span>X<span class="op">,</span> y<span class="op">);</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>    <span class="co">// ensmallen counts iterations in data points visited, so one epoch is</span></span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>    <span class="co">// nrow(X) iterations.</span></span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>    <span class="at">const</span> <span class="dt">size_t</span> max_iterations <span class="op">=</span> max_epochs <span class="op">*</span> X<span class="op">.</span>n_rows<span class="op">;</span></span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>    <span class="co">// Arguments are: stepSize, batchSize, beta1, beta2, eps, maxIterations,</span></span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a>    <span class="co">// tolerance, and whether to shuffle between epochs.</span></span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>    ens<span class="op">::</span>Adam optimizer<span class="op">(</span>step_size<span class="op">,</span> batch_size<span class="op">,</span> <span class="fl">0.9</span><span class="op">,</span> <span class="fl">0.999</span><span class="op">,</span> <span class="fl">1e-8</span><span class="op">,</span></span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a>                        max_iterations<span class="op">,</span> <span class="fl">1e-8</span><span class="op">,</span> <span class="kw">true</span><span class="op">);</span></span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a></span>
+<span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a>    arma<span class="op">::</span>mat beta<span class="op">(</span>X<span class="op">.</span>n_cols<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>zeros<span class="op">);</span></span>
+<span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a></span>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a>    <span class="co">// Callbacks are passed as trailing arguments to Optimize(). PrintLoss</span></span>
+<span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a>    <span class="co">// writes to arma::get_cout_stream(), which RcppArmadillo maps to</span></span>
+<span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a>    <span class="co">// Rcpp::Rcout, so the output is safe to emit from an R package.</span></span>
+<span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>verbose<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a>        optimizer<span class="op">.</span>Optimize<span class="op">(</span>lrf<span class="op">,</span> beta<span class="op">,</span> ens<span class="op">::</span>PrintLoss<span class="op">());</span></span>
+<span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb17-27"><a href="#cb17-27" tabindex="-1"></a>        optimizer<span class="op">.</span>Optimize<span class="op">(</span>lrf<span class="op">,</span> beta<span class="op">);</span></span>
+<span id="cb17-28"><a href="#cb17-28" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb17-29"><a href="#cb17-29" tabindex="-1"></a></span>
+<span id="cb17-30"><a href="#cb17-30" tabindex="-1"></a>    <span class="cf">return</span> beta<span class="op">;</span></span>
+<span id="cb17-31"><a href="#cb17-31" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>MaxIterations()</code> counts data points, not epochs or
+batches. Passing 50 when you meant fifty passes over the data would stop
+the optimizer after fifty <em>observations</em>. One epoch is
+<code>nrow(X)</code> iterations, which is why <code>max_epochs</code> is
+multiplied out above.</p>
+<p>Since <code>ensmallen</code> 3.10, the SGD family divides the step
+size by the batch size. The intent is that batch size and step size can
+be tuned independently, but it means a step size carried over from
+<code>ensmallen</code> 2 is effectively <code>batchSize</code> times
+smaller than it used to be. Defining
+<code>ENS_OLD_SEPARABLE_STEP_BEHAVIOR</code> before including the
+headers restores the old behavior.</p>
+<p><code>ens::Adam</code> defaults to a step size of 0.001, which
+predates the change. With a batch size of 32 that leaves an effective
+step of about <code>3e-5</code>, and the optimizer stalls far short of
+the optimum.</p>
+<p>The sweep changes the step size and nothing else. Batch size and
+epoch count stay at the defaults <code>logistic_reg_adam()</code>
+declares, and every call starts from the same vector of zeros:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>step_sizes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.001</span>, <span class="fl">0.01</span>, <span class="fl">0.05</span>, <span class="fl">0.25</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>adam_fits <span class="ot">&lt;-</span> <span class="fu">sapply</span>(step_sizes,</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>                    <span class="cf">function</span>(s) <span class="fu">logistic_reg_adam</span>(X, y, <span class="at">step_size =</span> s))</span></code></pre></div>
+<table>
+<caption>Adam Coefficients Across Step Sizes</caption>
+<colgroup>
+<col width="28%" />
+<col width="16%" />
+<col width="15%" />
+<col width="15%" />
+<col width="15%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">step = 0.001</th>
+<th align="right">step = 0.01</th>
+<th align="right">step = 0.05</th>
+<th align="right">step = 0.25</th>
+<th align="right">glm.fit</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Beta1</td>
+<td align="right">-0.2103</td>
+<td align="right">-0.8966</td>
+<td align="right">-0.9485</td>
+<td align="right">-0.9848</td>
+<td align="right">-0.9498</td>
+</tr>
+<tr class="even">
+<td align="left">Beta2</td>
+<td align="right">0.1826</td>
+<td align="right">0.6743</td>
+<td align="right">0.7148</td>
+<td align="right">0.6788</td>
+<td align="right">0.7186</td>
+</tr>
+<tr class="odd">
+<td align="left">Beta3</td>
+<td align="right">-0.1186</td>
+<td align="right">-0.3758</td>
+<td align="right">-0.4036</td>
+<td align="right">-0.3911</td>
+<td align="right">-0.4012</td>
+</tr>
+<tr class="even">
+<td align="left">Beta4</td>
+<td align="right">0.2181</td>
+<td align="right">1.0604</td>
+<td align="right">1.1353</td>
+<td align="right">1.1525</td>
+<td align="right">1.1333</td>
+</tr>
+<tr class="odd">
+<td align="left">Max deviation from MLE</td>
+<td align="right">0.9152</td>
+<td align="right">0.0729</td>
+<td align="right">0.0037</td>
+<td align="right">0.0397</td>
+<td align="right">0.0000</td>
+</tr>
+</tbody>
+</table>
+<p>Plotting the deviation against the step size shows both failure modes
+at once:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>dev_from_mle <span class="ot">&lt;-</span> <span class="fu">apply</span>(adam_fits, <span class="dv">2</span>, <span class="cf">function</span>(b) <span class="fu">max</span>(<span class="fu">abs</span>(b <span class="sc">-</span> coefs_glm)))</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">plot</span>(step_sizes, dev_from_mle, <span class="at">type =</span> <span class="st">&quot;b&quot;</span>, <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">log =</span> <span class="st">&quot;xy&quot;</span>,</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">&quot;#1b6ca8&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Step size&quot;</span>,</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Max deviation from the MLE&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Adam step size&quot;</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>best <span class="ot">&lt;-</span> <span class="fu">which.min</span>(dev_from_mle)</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="fu">points</span>(step_sizes[best], dev_from_mle[best], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">2.2</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">&quot;#c0392b&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="Maximum deviation from the maximum likelihood estimate plotted against Adam step size on logarithmic axes. The curve falls steeply from 0.001, reaches its lowest point at a step size of 0.05, which is circled, and rises again at 0.25." /></p>
+<p>Too small a step stalls short of the optimum and too large a one
+overshoots it.</p>
+<p>This is why <code>logistic_reg_adam()</code> defaults to
+<code>step_size = 0.05</code> rather than adopting
+<code>ens::Adam</code>’s own default.</p>
+<p>With a workable step size, Adam lands close to the L-BFGS answer
+while only ever looking at 32 rows at a time:</p>
+<table>
+<caption>Mini-Batch Adam Against Full-Batch L-BFGS</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Truth</th>
+<th align="right">Adam</th>
+<th align="right">L-BFGS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Beta1</td>
+<td align="right">-1.0</td>
+<td align="right">-0.9495</td>
+<td align="right">-0.9498</td>
+</tr>
+<tr class="even">
+<td align="left">Beta2</td>
+<td align="right">0.7</td>
+<td align="right">0.7242</td>
+<td align="right">0.7186</td>
+</tr>
+<tr class="odd">
+<td align="left">Beta3</td>
+<td align="right">-0.5</td>
+<td align="right">-0.4028</td>
+<td align="right">-0.4012</td>
+</tr>
+<tr class="even">
+<td align="left">Beta4</td>
+<td align="right">1.2</td>
+<td align="right">1.1342</td>
+<td align="right">1.1333</td>
+</tr>
+</tbody>
+</table>
+<p>The Adam column shifts slightly from call to call unless a seed is
+fixed. <code>Shuffle()</code> draws on Armadillo’s random number
+generator, and <code>RcppArmadillo</code> routes that onto R’s own
+stream, so <code>set.seed()</code> makes these results every bit as
+reproducible as the L-BFGS ones:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>); first  <span class="ot">&lt;-</span> <span class="fu">logistic_reg_adam</span>(X, y)</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>); second <span class="ot">&lt;-</span> <span class="fu">logistic_reg_adam</span>(X, y)</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">identical</span>(first, second)</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>The flip side is that every call consumes random numbers from R’s
+stream, so it advances any <code>rnorm()</code> or <code>runif()</code>
+draws that follow it.</p>
+<p>The <code>verbose</code> argument in the function above switches on a
+callback that prints the loss after each pass over the data, which turns
+a run that stopped short of the optimum into something visible. <a href="watching-an-optimizer.html">Watching an Optimizer Run with
+Callbacks</a> runs that branch, reads what it prints, and goes on to
+write a callback that records the points L-BFGS visits.</p>
+</div>
+<div id="moving-this-into-an-r-package" class="section level1">
+<h1>Moving this into an R package</h1>
+<p>Everything above works from a loose <code>.cpp</code> file, but
+<code>sourceCpp()</code> recompiles on every fresh session. Moving the
+code into a package compiles it once at install time, gives the
+functions manual pages, and lets other packages depend on them.</p>
+<p>Three changes carry it across:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Move the file into <code>src/</code>.</strong> The
+<code>// [[Rcpp::depends(RcppEnsmallen)]]</code> attribute is no longer
+needed, since <code>LinkingTo</code> in <code>DESCRIPTION</code>
+replaces it. Keep the <code>#include &lt;RcppEnsmallen.h&gt;</code>.
+This package splits the file in three, one exported function each, so
+each part carries its own copy of the helpers inside an anonymous
+<code>namespace { }</code>. The third of them holds the callback the
+other vignette develops, and keeps its copy of the objective class in
+there too, since the L-BFGS file already defines a class of that name at
+namespace scope.</li>
+<li><strong>Declare the dependency and build flags.</strong>
+<code>DESCRIPTION</code> needs a <code>LinkingTo</code> entry, and
+<code>src/</code> needs a <code>Makevars</code> and a
+<code>Makevars.win</code>. The <a href="package-usage.html">package
+usage vignette</a> gives the exact contents.</li>
+<li><strong>Regenerate the bindings.</strong> Running
+<code>Rcpp::compileAttributes()</code> writes the <code>.Call()</code>
+wrappers into <code>R/RcppExports.R</code> and
+<code>src/RcppExports.cpp</code>. Any roxygen comments written above the
+<code>// [[Rcpp::export]]</code> attribute are carried into
+<code>R/RcppExports.R</code>, so <code>roxygen2::roxygenise()</code>
+will then produce the manual page and the <code>NAMESPACE</code>
+export.</li>
+</ol>
+<p>Laid out as a tree, and trimmed to the files the move actually
+touches, that is:</p>
+<pre><code>RcppEnsmallen/
+|-- DESCRIPTION                          # holds the LinkingTo entry from step 2
+|-- NAMESPACE                            # export() and useDynLib(); roxygen2 writes it
+|-- R/
+|   `-- RcppExports.R                    # generated R wrappers around .Call()
+|-- src/
+|   |-- example-logistic-regression-lbfgs.cpp   # the objective class and logistic_reg_lbfgs()
+|   |-- example-logistic-regression-adam.cpp    # the separable class and logistic_reg_adam()
+|   |-- example-logistic-regression-path.cpp    # the callback, from the callbacks vignette
+|   |-- Makevars                         # compiler and linker flags, Unix-alikes
+|   |-- Makevars.win                     # the same flags for Windows
+|   `-- RcppExports.cpp                  # generated C++ registration layer
+|-- man/
+|   |-- logistic_reg_lbfgs.Rd            # generated from the roxygen comments in src/
+|   |-- logistic_reg_adam.Rd
+|   `-- logistic_reg_lbfgs_path.Rd
+|-- inst/
+|   `-- examples/
+|       `-- logistic-regression.cpp      # the standalone file, kept for sourceCpp()
+`-- vignettes/
+    `-- logistic-regression.Rmd          # this document</code></pre>
+<p>Step 1 accounts for the three files under <code>src/</code>, and step
+2 for <code>DESCRIPTION</code> together with the pair of
+<code>Makevars</code> files beside them. Step 3 accounts for everything
+else: <code>src/RcppExports.cpp</code>, <code>R/RcppExports.R</code>,
+the pages in <code>man/</code>, and <code>NAMESPACE</code> are all
+generated, so the only hand-written C++ in the tree is the file you
+moved.</p>
+<p>That is the whole difference between the standalone file and what
+this package provides. To compare them directly, the standalone version
+is at
+<code>system.file(&quot;examples&quot;, &quot;logistic-regression.cpp&quot;, package = &quot;RcppEnsmallen&quot;)</code>
+and the package version is split across
+<code>src/example-logistic-regression-lbfgs.cpp</code>,
+<code>src/example-logistic-regression-adam.cpp</code> and
+<code>src/example-logistic-regression-path.cpp</code> in the package
+sources.</p>
+</div>
+<div id="derivation" class="section level1">
+<h1>Derivation</h1>
+<p>Everything above was asserted rather than shown; here is the algebra
+in one place. Throughout, <span class="math inline">\(\eta_i =
+\sum_{j=1}^{p} X_{ij}\beta_j\)</span>, and the vector of fitted
+probabilities is <span class="math inline">\(\pi = \sigma(\eta)\)</span>
+with entries <span class="math inline">\(\pi_i =
+\sigma(\eta_i)\)</span>. The index <span class="math inline">\(i\)</span> runs over the <span class="math inline">\(n\)</span> observations and <span class="math inline">\(j\)</span> over the <span class="math inline">\(p\)</span> coefficients, and <span class="math inline">\(\nabla f(\beta)\)</span> is a column vector shaped
+like <span class="math inline">\(\beta\)</span>. Results that have a
+matrix form are given both ways, with the shape of each factor carried
+as a subscript, so that <span class="math inline">\(\mathbf{X}^{\top}_{p
+\times n}\)</span> marks a <span class="math inline">\(p \times
+n\)</span> matrix. The index form shows what is being summed; the matrix
+form shows what shape comes out.</p>
+<div id="from-the-bernoulli-likelihood-to-the-objective" class="section level2">
+<h2>From the Bernoulli likelihood to the objective</h2>
+<p>Independent Bernoulli responses give the likelihood</p>
+<p><span class="math display">\[L(\beta) = \prod_{i=1}^{n}
+\pi_i^{\,y_i}\left(1 - \pi_i\right)^{1 - y_i}\]</span></p>
+<p>Taking logs turns the product into a sum, and collecting the <span class="math inline">\(y_i\)</span> terms leaves a log-odds and an
+offset:</p>
+<p><span class="math display">\[\ell(\beta) = \sum_{i=1}^{n} \left[ y_i
+\log \pi_i + (1 - y_i)\log(1 - \pi_i) \right] = \sum_{i=1}^{n} \left[
+y_i \log\frac{\pi_i}{1 - \pi_i} + \log(1 - \pi_i) \right]\]</span></p>
+<p>The logistic function is built so that both pieces simplify. From
+<span class="math inline">\(1 - \pi_i = 1 - \sigma(\eta_i)\)</span> and
+<span class="math inline">\(1 - \sigma(\eta_i) = e^{-\eta_i} / (1 +
+e^{-\eta_i}) = 1 / (1 + e^{\eta_i})\)</span> we get</p>
+<p><span class="math display">\[\log\frac{\pi_i}{1 - \pi_i} =
+\log\frac{1 + e^{\eta_i}}{1 + e^{-\eta_i}} = \eta_i, \qquad \log(1 -
+\pi_i) = -\log\left(1 + e^{\eta_i}\right)\]</span></p>
+<p>Substituting both gives the log-likelihood used at the start,</p>
+<p><span class="math display">\[\ell(\beta) = \sum_{i=1}^{n} \left[ y_i
+\eta_i - \log\left(1 + e^{\eta_i}\right) \right]\]</span></p>
+<p>and the objective is <span class="math inline">\(f(\beta) =
+-\ell(\beta)\)</span>.</p>
+<p>The matrix form stated earlier is the same expression with every
+shape carried along:</p>
+<p><span class="math display">\[f(\beta)_{1 \times 1} \; = \;
+\mathbf{1}^{\top}_{1 \times n}\; \bigl[\log\left(1 +
+e^{\eta}\right)\bigr]_{n \times 1} \; - \; \mathbf{y}^{\top}_{1 \times
+n}\; \eta_{n \times 1}\]</span></p>
+<p>Both products run the length of the <span class="math inline">\(n\)</span> observations and return one number,
+which is the <span class="math inline">\(1 \times 1\)</span> on the
+left. In the C++ that <span class="math inline">\(\mathbf{1}^{\top}\)</span> is
+<code>arma::accu()</code>, which sums
+<code>softplus(eta) - y % eta</code> in a single pass rather than
+forming the two products separately.</p>
+</div>
+<div id="the-gradient" class="section level2">
+<h2>The gradient</h2>
+<p>Only one derivative is needed:</p>
+<p><span class="math display">\[\frac{d}{d\eta}\log\left(1 +
+e^{\eta}\right) = \frac{e^{\eta}}{1 + e^{\eta}} = \frac{1}{1 +
+e^{-\eta}} = \sigma(\eta)\]</span></p>
+<p>Observation <span class="math inline">\(i\)</span> contributes <span class="math inline">\(\log(1 + e^{\eta_i}) - y_i \eta_i\)</span> to
+<span class="math inline">\(f\)</span> and touches no other <span class="math inline">\(\eta\)</span>, so</p>
+<p><span class="math display">\[\frac{\partial f}{\partial \eta_i} =
+\sigma(\eta_i) - y_i = \pi_i - y_i\]</span></p>
+<p>The chain rule carries that back to the coefficients. Since <span class="math inline">\(\eta_i\)</span> involves <span class="math inline">\(\beta_j\)</span> only through the single term
+<span class="math inline">\(X_{ij}\beta_j\)</span>, we have <span class="math inline">\(\partial \eta_i / \partial \beta_j =
+X_{ij}\)</span>, and every observation contributes to every
+coefficient:</p>
+<p><span class="math display">\[\frac{\partial f}{\partial \beta_j} =
+\sum_{i=1}^{n} \frac{\partial f}{\partial \eta_i}\, \frac{\partial
+\eta_i}{\partial \beta_j} = \sum_{i=1}^{n} X_{ij}\left(\pi_i -
+y_i\right)\]</span></p>
+<p>A sum over the <em>first</em> index of <span class="math inline">\(X_{ij}\)</span> with the second left free is the
+definition of a transposed product: for any <span class="math inline">\(v \in \mathbb{R}^{n}\)</span>, the <span class="math inline">\(j\)</span>-th entry of <span class="math inline">\(\mathbf{X}^{\top} v\)</span> is <span class="math inline">\(\sum_{i} X_{ij} v_i\)</span>. Taking <span class="math inline">\(v = \pi - \mathbf{y}\)</span> and collecting all
+<span class="math inline">\(p\)</span> entries,</p>
+<p><span class="math display">\[\nabla f(\beta) =
+\mathbf{X}^{\top}\left(\pi - \mathbf{y}\right) \in
+\mathbb{R}^{p}\]</span></p>
+<p>The transpose is where the sum over observations went.</p>
+<p>The same two steps in matrix form carry the shapes along. Write <span class="math inline">\(\nabla_{\eta} f\)</span> for the column of
+partials <span class="math inline">\(\partial f / \partial
+\eta_i\)</span>, and <span class="math inline">\(\nabla_{\beta}
+f\)</span> for <span class="math inline">\(\nabla f\)</span> where the
+two need distinguishing. The derivative of the linear predictor with
+respect to the coefficients is the design matrix itself. The derivative
+of <span class="math inline">\(f\)</span> with respect to the linear
+predictor is the residual <span class="math inline">\(\pi -
+\mathbf{y}\)</span> between the fitted probabilities and the observed
+responses:</p>
+<p><span class="math display">\[\left(\frac{\partial \eta}{\partial
+\beta}\right)_{n \times p} \; = \; \mathbf{X}_{n \times p}, \qquad
+\left(\nabla_{\eta} f\right)_{n \times 1} \; = \; \left(\pi -
+\mathbf{y}\right)_{n \times 1}\]</span></p>
+<p>The chain rule composes the two, transposing the first factor so that
+the index they share is the one summed over:</p>
+<p><span class="math display">\[\left(\nabla_{\beta} f(\beta)\right)_{p
+\times 1} \; = \; \left(\frac{\partial \eta}{\partial
+\beta}\right)^{\top}_{p \times n}\; \left(\nabla_{\eta} f\right)_{n
+\times 1} \; = \; \mathbf{X}^{\top}_{p \times n}\; \left(\pi -
+\mathbf{y}\right)_{n \times 1}\]</span></p>
+<p>The <span class="math inline">\(n\)</span> sitting on the inside of
+that product is the observation index, and it is absent from the result:
+<span class="math inline">\((p \times n)\)</span> times <span class="math inline">\((n \times 1)\)</span> leaves the <span class="math inline">\(p \times 1\)</span> that <code>Gradient()</code>
+writes into <code>g</code>.</p>
+</div>
+<div id="the-ridge-term" class="section level2">
+<h2>The ridge term</h2>
+<p>The penalty</p>
+<p><span class="math display">\[r(\beta) =
+\frac{\lambda}{2}\lVert\beta\rVert^{2} =
+\frac{\lambda}{2}\sum_{j=1}^{p}\beta_j^{2}\]</span></p>
+<p>gives each coefficient exactly one term of its own, so</p>
+<p><span class="math display">\[\frac{\partial r}{\partial \beta_j} =
+\lambda \beta_j, \qquad \nabla r(\beta) = \lambda\beta \in
+\mathbb{R}^{p}\]</span></p>
+<p>The one half in the penalty exists to cancel the 2 brought down by
+the square, which is why <code>Evaluate()</code> carries a
+<code>0.5</code> that <code>Gradient()</code> does not.</p>
+<p>Annotating the shapes shows the penalty collapsing to a number while
+its gradient keeps the shape of <span class="math inline">\(\beta\)</span>:</p>
+<p><span class="math display">\[r(\beta)_{1 \times 1} \; = \;
+\frac{\lambda}{2}\, \beta^{\top}_{1 \times p}\; \beta_{p \times 1},
+\qquad \left(\nabla r(\beta)\right)_{p \times 1} \; = \; \lambda\,
+\beta_{p \times 1}\]</span></p>
+<p>Both terms of <span class="math inline">\(\nabla f_{\lambda}\)</span>
+are therefore <span class="math inline">\(p \times 1\)</span>, which is
+what lets <code>Gradient()</code> add <code>lambda * beta</code> to the
+vector coming out of <code>X.t() * (logistic(eta) - y)</code> entry by
+entry.</p>
+</div>
+<div id="the-softplus-identity" class="section level2">
+<h2>The softplus identity</h2>
+<p>The stable rewrite used earlier,</p>
+<p><span class="math display">\[\log\left(1 + e^{\eta}\right) =
+\max(\eta, 0) + \log\left(1 + e^{-|\eta|}\right)\]</span></p>
+<p>is an exact identity rather than an approximation. The sign of <span class="math inline">\(\eta\)</span> decides which value <span class="math inline">\(\max(\eta, 0)\)</span> takes and which sign <span class="math inline">\(|\eta|\)</span> strips, so the two cases are
+checked separately.</p>
+<p>For <span class="math inline">\(\eta \geq 0\)</span>, <span class="math inline">\(\max(\eta, 0) = \eta\)</span> and <span class="math inline">\(|\eta| = \eta\)</span>, so the right-hand side
+is</p>
+<p><span class="math display">\[\eta + \log\left(1 + e^{-\eta}\right) =
+\log e^{\eta} + \log\left(1 + e^{-\eta}\right) =
+\log\left(e^{\eta}\left(1 + e^{-\eta}\right)\right) = \log\left(1 +
+e^{\eta}\right)\]</span></p>
+<p>For <span class="math inline">\(\eta &lt; 0\)</span>, <span class="math inline">\(\max(\eta, 0) = 0\)</span> and <span class="math inline">\(|\eta| = -\eta\)</span>, so the right-hand side is
+<span class="math inline">\(\log(1 + e^{\eta})\)</span> with nothing to
+do.</p>
+<p>Both branches return the left-hand side. The difference is what a
+computer is asked to evaluate. On the right the exponent is <span class="math inline">\(-|\eta| \leq 0\)</span>, so <span class="math inline">\(e^{-|\eta|}\)</span> lands in <span class="math inline">\((0, 1]\)</span> and cannot overflow, while the
+<span class="math inline">\(\max(\eta, 0)\)</span> term carries the
+large part of the answer exactly.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

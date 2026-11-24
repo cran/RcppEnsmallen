@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+
+<html lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="James Joseph Balamuta" />
+
+
+<title>Constrained Optimization with Non-Negative Least Squares</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+<style type="text/css">
+p.abstract{
+text-align: center;
+font-weight: bold;
+}
+div.abstract{
+margin: auto;
+width: 90%;
+}
+</style>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Constrained Optimization with Non-Negative
+Least Squares</h1>
+<h4 class="author">James Joseph Balamuta</h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+<p>In this vignette we fit a least squares regression whose coefficients
+are required to be non-negative. The constraint is what changes the C++
+side: the objective class grows three member functions beyond the
+<code>Evaluate()</code> and <code>Gradient()</code> pair, and the
+optimizer that reads them solves a sequence of penalized problems. We
+work through the sign convention <code>ensmallen</code> uses for a
+bound, check the fit against
+<code>optim(method = &quot;L-BFGS-B&quot;, lower = 0)</code>, and show what
+happens when the convention is written backwards.</p>
+</div>
+
+
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>The <a href="using-rcppensmallen.html">linear regression vignette</a>
+minimizes the residual sum of squares over every coefficient vector in
+<span class="math inline">\(\mathbb{R}^{p}\)</span>. This vignette
+minimizes the same objective over the part of <span class="math inline">\(\mathbb{R}^{p}\)</span> where no coefficient is
+negative. That is the fit to use when a coefficient stands for a
+quantity that cannot be negative, such as a mixing proportion, a dose,
+or a count of photons contributed by one source.</p>
+<p>Adding that restriction changes the C++ rather than the mathematics
+of the loss. The class that carried <code>Evaluate()</code> and
+<code>Gradient()</code> now has to describe the feasible region as well,
+through three more member functions. The optimizer reading them works
+differently from L-BFGS, minimizing a sequence of unconstrained problems
+in which a violated constraint costs more each round.</p>
+<p>The C++ below is a fragment of one file, which is included in the
+package as <code>src/example-nnls-constrained.cpp</code> and compiled
+into it as <code>nnls_auglag()</code>. Because compiling C++ is slow,
+this vignette displays the source without rebuilding it and calls the
+precompiled function to produce the numbers.</p>
+</div>
+<div id="the-problem" class="section level1">
+<h1>The problem</h1>
+<p>The design matrix is <span class="math inline">\(\mathbf{X} \in
+\mathbb{R}^{n \times p}\)</span>, the coefficient vector is <span class="math inline">\(\beta \in \mathbb{R}^{p}\)</span>, and the
+response <span class="math inline">\(\mathbf{y} \in
+\mathbb{R}^{n}\)</span> is continuous. The objective is the residual sum
+of squares, unchanged from the linear regression vignette:</p>
+<p><span class="math display">\[f(\beta) = \lVert \mathbf{y} -
+\mathbf{X}\beta \rVert_2^{2} = \left(\mathbf{y} -
+\mathbf{X}\beta\right)^{\top}\left(\mathbf{y} - \mathbf{X}\beta\right)
+\in \mathbb{R}\]</span></p>
+<p><span class="math display">\[\nabla f(\beta) =
+-2\,\mathbf{X}^{\top}\left(\mathbf{y} - \mathbf{X}\beta\right) \in
+\mathbb{R}^{p}\]</span></p>
+<p>What is added is a restriction on where <span class="math inline">\(\beta\)</span> may lie:</p>
+<p><span class="math display">\[\underset{\beta}{\text{minimize}} \quad
+f(\beta) \qquad \text{subject to} \quad \beta_j \geq 0, \quad j = 1,
+\dots, p\]</span></p>
+<p>Every column of <span class="math inline">\(\mathbf{X}\)</span>
+carries one bound, so there are <span class="math inline">\(p\)</span>
+constraints. No intercept column belongs in <span class="math inline">\(\mathbf{X}\)</span> here, since including one
+would constrain the intercept along with the rest.</p>
+<p>Setting the gradient to zero solves the unconstrained problem in
+closed form and gives the ordinary least squares fit, which ignores the
+bounds. Nothing stops it from returning negative coefficients when the
+columns responsible are weak or correlated, and the data below is built
+so that it does.</p>
+</div>
+<div id="the-constrained-function-contract" class="section level1">
+<h1>The constrained function contract</h1>
+<p><code>ensmallen</code> sorts objectives by which member functions
+they define. A <a href="https://www.ensmallen.org/docs.html#constrained-functions">constrained
+function</a> is a differentiable function plus a description of the
+feasible region:</p>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Member function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Evaluate(beta)</code></td>
+<td>The objective at <code>beta</code>, ignoring the constraints</td>
+</tr>
+<tr class="even">
+<td><code>Gradient(beta, g)</code></td>
+<td>The gradient of that objective</td>
+</tr>
+<tr class="odd">
+<td><code>NumConstraints()</code></td>
+<td>How many constraints there are</td>
+</tr>
+<tr class="even">
+<td><code>EvaluateConstraint(i, beta)</code></td>
+<td>The value of constraint <code>i</code> at <code>beta</code></td>
+</tr>
+<tr class="odd">
+<td><code>GradientConstraint(i, beta, g)</code></td>
+<td>The gradient of constraint <code>i</code></td>
+</tr>
+</tbody>
+</table>
+<p>The first two are the pair the <a href="logistic-regression.html">logistic regression vignette</a> writes,
+and they describe the objective alone. The last three describe the
+region one constraint at a time. The index <code>i</code> runs from 0 to
+<code>NumConstraints() - 1</code>, and the optimizer asks for one
+constraint per call rather than for the whole vector at once.</p>
+<div id="the-sign-convention" class="section level2">
+<h2>The sign convention</h2>
+<p><code>ens::AugLagrangian</code> treats every constraint as an
+<em>equality</em>, <span class="math inline">\(c_i(\beta) = 0\)</span>.
+For each constraint it adds</p>
+<p><span class="math display">\[-\lambda_i\, c_i(\beta) +
+\frac{\sigma}{2}\, c_i(\beta)^{2}\]</span></p>
+<p>to the objective, with a multiplier <span class="math inline">\(\lambda_i\)</span> and a penalty parameter <span class="math inline">\(\sigma\)</span> that the optimizer maintains.
+Nothing in that expression clamps <span class="math inline">\(c_i\)</span>, so a non-zero value of either sign
+is charged for.</p>
+<p>An inequality therefore has to be written by hand as a residual that
+is exactly zero on the feasible side of the boundary. For a lower bound
+of zero:</p>
+<p><span class="math display">\[\beta_j \geq 0 \quad \text{becomes}
+\quad c_j(\beta) = \min\left(0, \beta_j\right)\]</span></p>
+<p>which is <span class="math inline">\(0\)</span> when <span class="math inline">\(\beta_j \geq 0\)</span> and equal to <span class="math inline">\(\beta_j\)</span>, a negative number, when it is
+not. Feasible points cost nothing and infeasible ones cost more the
+further out they are. <code>ensmallen</code> uses this same encoding for
+the inequality in its own <code>GockenbachFunction</code>, in
+<code>inst/include/ensmallen_bits/problems/aug_lagrangian_test_functions_impl.hpp</code>.</p>
+<p>The clamp records the direction of the bound, and it is the one part
+of the constraint that cannot be inferred from anything else. <a href="#writing-the-convention-backwards">Writing it backwards</a> states
+the opposite bound, and the compiler says nothing.</p>
+<p>Differentiating the clamped residual gives the constraint gradient,
+the <span class="math inline">\(j\)</span>-th standard basis vector
+where the bound is violated and zero where it is satisfied:</p>
+<p><span class="math display">\[\nabla c_j(\beta) = \begin{cases} e_j
+&amp; \beta_j &lt; 0 \\ 0 &amp; \beta_j \geq 0 \end{cases} \in
+\mathbb{R}^{p}\]</span></p>
+</div>
+<div id="the-augmented-lagrangian" class="section level2">
+<h2>The augmented Lagrangian</h2>
+<p><a href="https://www.ensmallen.org/docs.html#augmented-lagrangian"><code>ens::AugLagrangian</code></a>
+folds the constraints into the objective and hands the result to L-BFGS.
+The function it actually minimizes is</p>
+<p><span class="math display">\[L(\beta; \lambda, \sigma) = f(\beta) +
+\sum_{i=1}^{m} \left[ -\lambda_i\, c_i(\beta) + \frac{\sigma}{2}\,
+c_i(\beta)^{2} \right] \in \mathbb{R}\]</span></p>
+<p>whose gradient is assembled from the two gradients the class
+supplies:</p>
+<p><span class="math display">\[\nabla L(\beta; \lambda, \sigma) =
+\nabla f(\beta) + \sum_{i=1}^{m} \left[ -\lambda_i + \sigma\, c_i(\beta)
+\right] \nabla c_i(\beta) \in \mathbb{R}^{p}\]</span></p>
+<p>Between them the two expressions use every member function of the
+table. <code>Evaluate()</code> and <code>Gradient()</code> supply the
+leading term, <code>NumConstraints()</code> gives the range of the sum,
+and <code>EvaluateConstraint()</code> and
+<code>GradientConstraint()</code> supply the terms inside it.</p>
+<p>Between rounds the optimizer measures <span class="math inline">\(\sum_i c_i(\beta)^{2}\)</span> and does one of two
+things. If that penalty has fallen far enough, the multipliers move,
+<span class="math inline">\(\lambda_i \leftarrow \lambda_i - \sigma\,
+c_i(\beta)\)</span>, and the bar for the next round is set at a quarter
+of the current penalty. If it has not, <span class="math inline">\(\sigma\)</span> is multiplied by ten and the same
+problem is solved again with violations costing more. The multipliers
+start at zero and <span class="math inline">\(\sigma\)</span> starts at
+ten. The factors of a quarter and ten are the defaults
+<code>ens::AugLagrangian</code> takes from Burer and Monteiro (2002),
+and both are constructor arguments.</p>
+<p>Because the bound is enforced by a penalty rather than by projection,
+a coefficient resting on the boundary comes back as a number near zero
+rather than as exactly zero. It can land on either side of the bound.
+Round the result before comparing it with zero.</p>
+</div>
+</div>
+<div id="the-class" class="section level1">
+<h1>The class</h1>
+<p>Every standalone file using <code>RcppEnsmallen</code> opens with the
+same two lines. The attribute tells <code>Rcpp::sourceCpp()</code> where
+to find the headers.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;RcppEnsmallen.h&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="co">// [[Rcpp::depends(RcppEnsmallen)]]</span></span></code></pre></div>
+<p>The five member functions of the table appear below in the same
+order.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co">// Define a constrained objective function. On top of the Evaluate() and</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co">// Gradient() pair that a differentiable function supplies, the constrained</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">// contract adds NumConstraints(), EvaluateConstraint() and</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">// GradientConstraint().</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="kw">class</span> NonNegativeLeastSquaresFunction</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="kw">public</span><span class="op">:</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    <span class="co">// Construct the object with the given design matrix and responses.</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    NonNegativeLeastSquaresFunction<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">)</span> <span class="op">:</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    X<span class="op">(</span>X<span class="op">),</span> y<span class="op">(</span>y<span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    <span class="co">// Return the residual sum of squares for coefficients beta.</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    <span class="dt">double</span> Evaluate<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">)</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>        <span class="at">const</span> arma<span class="op">::</span>vec r <span class="op">=</span> y <span class="op">-</span> X <span class="op">*</span> beta<span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>        <span class="cf">return</span> arma<span class="op">::</span>dot<span class="op">(</span>r<span class="op">,</span> r<span class="op">);</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>    <span class="co">// Compute the gradient of the residual sum of squares.</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>    <span class="dt">void</span> Gradient<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">,</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> g<span class="op">)</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>        g <span class="op">=</span> <span class="op">-</span><span class="fl">2.0</span> <span class="op">*</span> X<span class="op">.</span>t<span class="op">()</span> <span class="op">*</span> <span class="op">(</span>y <span class="op">-</span> X <span class="op">*</span> beta<span class="op">);</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>    <span class="co">// One constraint per coefficient, each one a lower bound of zero.</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>    <span class="dt">size_t</span> NumConstraints<span class="op">()</span> <span class="at">const</span> <span class="op">{</span> <span class="cf">return</span> X<span class="op">.</span>n_cols<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>    <span class="co">// Return the residual of constraint i, which is zero when beta_i is</span></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>    <span class="co">// non-negative and equal to beta_i when it is not.</span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>    <span class="co">//</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>    <span class="co">// ensmallen only ever passes an index below NumConstraints(). The bounds</span></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>    <span class="co">// test guards against a caller that reuses this class directly, since</span></span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>    <span class="co">// beta(i, 0) is unchecked once NDEBUG is set.</span></span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>    <span class="dt">double</span> EvaluateConstraint<span class="op">(</span><span class="at">const</span> <span class="dt">size_t</span> i<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">)</span></span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>i <span class="op">&gt;=</span> X<span class="op">.</span>n_cols<span class="op">)</span> <span class="cf">return</span> <span class="fl">0.0</span><span class="op">;</span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a></span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">std::</span>min<span class="op">(</span><span class="fl">0.0</span><span class="op">,</span> beta<span class="op">(</span>i<span class="op">,</span> <span class="dv">0</span><span class="op">));</span></span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>    <span class="co">// Compute the gradient of constraint i, the derivative of the clamped</span></span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>    <span class="co">// residual returned above.</span></span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>    <span class="dt">void</span> GradientConstraint<span class="op">(</span><span class="at">const</span> <span class="dt">size_t</span> i<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> beta<span class="op">,</span></span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>                            arma<span class="op">::</span>mat<span class="op">&amp;</span> g<span class="op">)</span></span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>    <span class="op">{</span></span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>        g<span class="op">.</span>zeros<span class="op">(</span>beta<span class="op">.</span>n_rows<span class="op">,</span> beta<span class="op">.</span>n_cols<span class="op">);</span></span>
+<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a></span>
+<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>i <span class="op">&lt;</span> X<span class="op">.</span>n_cols <span class="op">&amp;&amp;</span> beta<span class="op">(</span>i<span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.0</span><span class="op">)</span> g<span class="op">(</span>i<span class="op">,</span> <span class="dv">0</span><span class="op">)</span> <span class="op">=</span> <span class="fl">1.0</span><span class="op">;</span></span>
+<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a><span class="kw">private</span><span class="op">:</span></span>
+<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>    <span class="co">// The design matrix.</span></span>
+<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>    <span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">;</span></span>
+<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>    <span class="co">// The responses to each data point.</span></span>
+<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>    <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">;</span></span>
+<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+<p><code>GradientConstraint()</code> writes into <code>g</code> and
+returns nothing, the way <code>Gradient()</code> does, and it has to
+clear <code>g</code> first. The optimizer reuses one matrix across all
+<span class="math inline">\(m\)</span> calls, so an entry left behind by
+constraint <span class="math inline">\(i - 1\)</span> would be read as
+part of constraint <span class="math inline">\(i\)</span>. Clamping it
+to match <code>EvaluateConstraint()</code> keeps the value and the
+gradient describing the same function, and the cost of <a href="#a-mismatched-constraint-gradient">dropping it</a> is measured at
+the end.</p>
+<p>The exported function pairs the class with the optimizer.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co">// [[Rcpp::export]]</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>arma<span class="op">::</span>vec nnls_auglag<span class="op">(</span><span class="at">const</span> arma<span class="op">::</span>mat<span class="op">&amp;</span> X<span class="op">,</span> <span class="at">const</span> arma<span class="op">::</span>vec<span class="op">&amp;</span> y<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="co">// Construct the objective function.</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    NonNegativeLeastSquaresFunction nnls<span class="op">(</span>X<span class="op">,</span> y<span class="op">);</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>    <span class="co">// Create the augmented Lagrangian optimizer with default parameters. It</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    <span class="co">// solves a sequence of unconstrained problems with L-BFGS, raising the</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    <span class="co">// penalty on violated constraints between rounds.</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    ens<span class="op">::</span>AugLagrangian auglag<span class="op">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>    <span class="co">// A vector of zeros is feasible, so optimization begins inside the</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="co">// feasible region and the result is reproducible.</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    arma<span class="op">::</span>mat beta<span class="op">(</span>X<span class="op">.</span>n_cols<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> arma<span class="op">::</span>fill<span class="op">::</span>zeros<span class="op">);</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>    <span class="co">// Run the optimization.</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>    auglag<span class="op">.</span>Optimize<span class="op">(</span>nnls<span class="op">,</span> beta<span class="op">);</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>    <span class="cf">return</span> beta<span class="op">;</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The starting point is read, unlike the swarm in the <a href="gradient-free-optimization.html">gradient-free vignette</a>, and a
+vector of zeros satisfies every constraint. Nothing here draws a random
+number, so repeated calls agree exactly and leave R’s random number
+stream where they found it.</p>
+<p>The included file adds a block of <code>Rcpp::stop()</code> argument
+checks at the top of this function, omitted here so the optimizer setup
+stays in view. They reject a non-finite <code>X</code> or
+<code>y</code>. A single <code>NA</code> makes the objective non-finite,
+the optimizer makes no progress, and the untouched vector of zeros comes
+back looking like a fit with every coefficient on its bound.</p>
+<p><strong>Note:</strong> the <code>// [[Rcpp::export]]</code> attribute
+has to appear in the <code>.cpp</code> file Rcpp compiles, but the class
+does not have to. Moving the class into a header beside it and including
+it with <code>#include</code> works under both <code>sourceCpp()</code>
+and a package build.</p>
+</div>
+<div id="verifying-the-result" class="section level1">
+<h1>Verifying the result</h1>
+<p>Two of the four true coefficients are exactly zero, which puts their
+least squares estimates on the boundary and lets sampling noise carry
+them across it.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="fl">1.5</span>, <span class="dv">0</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">length</span>(beta)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">24</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># No intercept column: every column of X is constrained</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p), <span class="at">ncol =</span> p)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co"># Continuous responses</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(X <span class="sc">%*%</span> beta <span class="sc">+</span> <span class="fu">rnorm</span>(n))</span></code></pre></div>
+<p>The unconstrained fit lands outside the feasible region, which is the
+premise the constrained fit exists to handle:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>ols <span class="ot">&lt;-</span> <span class="fu">unname</span>(<span class="fu">qr.solve</span>(X, y))</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>ols</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; [1]  2.0657368 -0.1195288  1.5037992 -0.2641133</span></span></code></pre></div>
+<p><code>optim(method = &quot;L-BFGS-B&quot;, lower = 0)</code> is the base R
+comparison. It takes box bounds directly rather than through a penalty,
+so it reaches the same optimum by a different route. Its convergence
+controls are tightened well past the defaults, so any gap between the
+two fits comes from the augmented Lagrangian rather than from
+<code>optim()</code> stopping early.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>rss <span class="ot">&lt;-</span> <span class="cf">function</span>(b) <span class="fu">sum</span>((y <span class="sc">-</span> X <span class="sc">%*%</span> b)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">nnls_auglag</span>(X, y)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>box <span class="ot">&lt;-</span> <span class="fu">optim</span>(<span class="fu">rep</span>(<span class="dv">0</span>, p), rss, <span class="at">method =</span> <span class="st">&quot;L-BFGS-B&quot;</span>, <span class="at">lower =</span> <span class="fu">rep</span>(<span class="dv">0</span>, p),</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>             <span class="at">control =</span> <span class="fu">list</span>(<span class="at">factr =</span> <span class="dv">1</span>e<span class="sc">-</span><span class="dv">12</span>, <span class="at">pgtol =</span> <span class="dv">0</span>, <span class="at">maxit =</span> <span class="dv">10000</span>))</span></code></pre></div>
+<table>
+<caption>Comparison of Estimated Coefficients</caption>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Truth</th>
+<th align="right">Least squares</th>
+<th align="right">ensmallen</th>
+<th align="right">optim</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Beta1</td>
+<td align="right">2.0</td>
+<td align="right">2.065737</td>
+<td align="right">2.055437</td>
+<td align="right">2.055437</td>
+</tr>
+<tr class="even">
+<td align="left">Beta2</td>
+<td align="right">0.0</td>
+<td align="right">-0.119529</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+</tr>
+<tr class="odd">
+<td align="left">Beta3</td>
+<td align="right">1.5</td>
+<td align="right">1.503799</td>
+<td align="right">1.479247</td>
+<td align="right">1.479247</td>
+</tr>
+<tr class="even">
+<td align="left">Beta4</td>
+<td align="right">0.0</td>
+<td align="right">-0.264113</td>
+<td align="right">0.000000</td>
+<td align="right">0.000000</td>
+</tr>
+</tbody>
+</table>
+<p>The two constrained fits agree on the coefficients and, more tightly,
+on the objective they are both minimizing:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(fit) <span class="sc">-</span> box<span class="sc">$</span>par))</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; [1] 1.690073e-08</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="fu">rss</span>(fit) <span class="sc">-</span> box<span class="sc">$</span>value</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; [1] 4.263256e-14</span></span></code></pre></div>
+<p>Constraining the problem cannot lower the objective, since the
+feasible set is a subset of the space the unconstrained fit searches
+over. The rise from the least squares value to the constrained one is
+what the bounds cost in fit:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">c</span>(<span class="at">unconstrained =</span> <span class="fu">rss</span>(ols), <span class="at">constrained =</span> <span class="fu">rss</span>(fit))</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; unconstrained   constrained </span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;      92.60216     102.72263</span></span></code></pre></div>
+<p>Both fits side by side, with the infeasible half plane shaded:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>idx <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(p)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>ylim <span class="ot">&lt;-</span> <span class="fu">range</span>(<span class="fu">c</span>(ols, <span class="fu">as.vector</span>(fit), beta)) <span class="sc">+</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.15</span>, <span class="fl">0.15</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">plot</span>(idx, ols, <span class="at">type =</span> <span class="st">&quot;n&quot;</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.7</span>, p <span class="sc">+</span> <span class="fl">0.3</span>), <span class="at">ylim =</span> ylim, <span class="at">xaxt =</span> <span class="st">&quot;n&quot;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Coefficient&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Estimate&quot;</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Unconstrained and constrained fits&quot;</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co"># Shade the half of the plane the constraints rule out.</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="fu">rect</span>(<span class="fu">par</span>(<span class="st">&quot;usr&quot;</span>)[<span class="dv">1</span>], <span class="fu">par</span>(<span class="st">&quot;usr&quot;</span>)[<span class="dv">3</span>], <span class="fu">par</span>(<span class="st">&quot;usr&quot;</span>)[<span class="dv">2</span>], <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;grey93&quot;</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>     <span class="at">border =</span> <span class="cn">NA</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="fu">box</span>()</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="st">&quot;grey40&quot;</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> idx, <span class="at">labels =</span> <span class="fu">paste0</span>(<span class="st">&quot;Beta&quot;</span>, idx))</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="fu">arrows</span>(idx, ols, idx, <span class="fu">as.vector</span>(fit), <span class="at">length =</span> <span class="fl">0.08</span>, <span class="at">col =</span> <span class="st">&quot;grey55&quot;</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>       <span class="at">lwd =</span> <span class="fl">1.5</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="fu">points</span>(idx, ols, <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">1.6</span>, <span class="at">lwd =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;#c0392b&quot;</span>)</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="fu">points</span>(idx, <span class="fu">as.vector</span>(fit), <span class="at">pch =</span> <span class="dv">16</span>, <span class="at">cex =</span> <span class="fl">1.4</span>, <span class="at">col =</span> <span class="st">&quot;#1b6ca8&quot;</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="fu">points</span>(idx, beta, <span class="at">pch =</span> <span class="dv">3</span>, <span class="at">cex =</span> <span class="fl">1.2</span>, <span class="at">col =</span> <span class="st">&quot;grey30&quot;</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span>, <span class="at">cex =</span> <span class="fl">0.85</span>,</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">&quot;Least squares&quot;</span>, <span class="st">&quot;Non-negative&quot;</span>, <span class="st">&quot;Truth&quot;</span>),</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;#c0392b&quot;</span>, <span class="st">&quot;#1b6ca8&quot;</span>, <span class="st">&quot;grey30&quot;</span>), <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">16</span>, <span class="dv">3</span>),</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>       <span class="at">pt.cex =</span> <span class="fu">c</span>(<span class="fl">1.6</span>, <span class="fl">1.4</span>, <span class="fl">1.2</span>))</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a><span class="fu">text</span>(<span class="fu">par</span>(<span class="st">&quot;usr&quot;</span>)[<span class="dv">1</span>] <span class="sc">+</span> <span class="fl">0.1</span>, ylim[<span class="dv">1</span>] <span class="sc">+</span> <span class="fl">0.06</span>, <span class="st">&quot;infeasible&quot;</span>, <span class="at">adj =</span> <span class="dv">0</span>, <span class="at">cex =</span> <span class="fl">0.8</span>,</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>     <span class="at">col =</span> <span class="st">&quot;grey40&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" alt="Estimated coefficients plotted against coefficient index. The region below zero is shaded and labelled infeasible. For the first and third coefficients the least squares and constrained estimates sit close together well above zero. For the second and fourth the least squares estimates lie inside the shaded region, and arrows carry them up to constrained estimates resting on the zero line, where the true values also lie." /></p>
+<p>The two coefficients whose true value is zero are the two the
+constraints act on, and the other two are left where least squares put
+them.</p>
+<p>Reading zero off the plot is one thing and testing for it is another.
+The coefficients on the boundary are not exactly zero:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">as.vector</span>(fit)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co">#&gt; [1]  2.055437e+00  1.101628e-17  1.479247e+00 -4.804837e-17</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="fu">min</span>(<span class="fu">as.vector</span>(fit))</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt; [1] -4.804837e-17</span></span></code></pre></div>
+<p>The two resting coefficients come back at the size of a rounding
+error, and one of them is negative, so <code>all(fit &gt;= 0)</code>
+fails on a correct answer. Round the coefficients first, or compare them
+against a small negative tolerance.</p>
+<div id="a-feasible-least-squares-fit" class="section level2">
+<h2>A feasible least squares fit</h2>
+<p>When every least squares coefficient is already non-negative, no
+constraint is active and the constrained answer has to be the
+unconstrained one. The check below confirms that the optimizer leaves
+such a fit alone rather than pulling its coefficients toward zero:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>X_feas <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">300</span> <span class="sc">*</span> <span class="dv">3</span>), <span class="at">ncol =</span> <span class="dv">3</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>y_feas <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(X_feas <span class="sc">%*%</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">2</span>, <span class="dv">5</span>) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="dv">300</span>, <span class="at">sd =</span> <span class="fl">0.5</span>))</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>ols_feas <span class="ot">&lt;-</span> <span class="fu">unname</span>(<span class="fu">qr.solve</span>(X_feas, y_feas))</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">min</span>(ols_feas)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt; [1] 2.018974</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(<span class="fu">nnls_auglag</span>(X_feas, y_feas)) <span class="sc">-</span> ols_feas))</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="co">#&gt; [1] 2.838085e-11</span></span></code></pre></div>
+<p>The smallest least squares coefficient is comfortably positive, and
+the constrained fit reproduces the unconstrained one to within
+1e-10.</p>
+</div>
+</div>
+<div id="the-specialist-solver" class="section level1">
+<h1>The specialist solver</h1>
+<p><code>optim()</code> is another general purpose optimizer.
+Non-negative least squares has a dedicated algorithm of its own. The
+active set method of Lawson and Hanson partitions the coefficients into
+a free set and a set held at zero. It moves one coefficient between the
+two per iteration and solves an unconstrained least squares problem on
+the free set each time. The CRAN package <code>nnls</code> is a wrapper
+around their Fortran implementation.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>lawson_hanson <span class="ot">&lt;-</span> nnls<span class="sc">::</span><span class="fu">nnls</span>(X, y)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="fu">c</span>(<span class="at">ensmallen =</span> <span class="fu">rss</span>(fit), <span class="at">nnls =</span> <span class="fu">rss</span>(lawson_hanson<span class="sc">$</span>x))</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; ensmallen      nnls </span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt;  102.7226  102.7226</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="fu">rss</span>(fit) <span class="sc">-</span> <span class="fu">rss</span>(lawson_hanson<span class="sc">$</span>x)</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; [1] -1.421085e-14</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">max</span>(<span class="fu">abs</span>(<span class="fu">as.vector</span>(fit) <span class="sc">-</span> lawson_hanson<span class="sc">$</span>x))</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; [1] 1.690069e-08</span></span></code></pre></div>
+<p>Both fits reach a residual sum of squares of 102.722631698. The gap
+between them is -1.4e-14, and the coefficients agree to 1.7e-08. The
+augmented Lagrangian reaches the optimum the specialist reaches.</p>
+<p>The two differ in how a coefficient rests on its bound:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>lawson_hanson<span class="sc">$</span>x</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt; [1] 2.055437 0.000000 1.479247 0.000000</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">as.vector</span>(fit)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; [1]  2.055437e+00  1.101628e-17  1.479247e+00 -4.804837e-17</span></span></code></pre></div>
+<p>The active set method holds the second and fourth coefficients at
+zero for the whole run and returns them as exactly 0. The augmented
+Lagrangian pushes toward the bound through a penalty and stops near it,
+at 1.1e-17 on the second and -4.8e-17 on the fourth. Rounding before the
+comparison is what makes a test pass against either solver.</p>
+<p>Agreement alone is half the comparison. The other half is what each
+answer costs. A single call to either solver sits at the edge of the
+clock’s resolution, so each is timed over a loop long enough to clear
+it:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>ens_reps <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>nnls_reps <span class="ot">&lt;-</span> <span class="dv">2000</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>t_ens <span class="ot">&lt;-</span> <span class="fu">system.time</span>(</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(ens_reps)) <span class="fu">nnls_auglag</span>(X, y)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>)[[<span class="st">&quot;elapsed&quot;</span>]] <span class="sc">/</span> ens_reps</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>t_nnls <span class="ot">&lt;-</span> <span class="fu">system.time</span>(</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nnls_reps)) nnls<span class="sc">::</span><span class="fu">nnls</span>(X, y)</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>)[[<span class="st">&quot;elapsed&quot;</span>]] <span class="sc">/</span> nnls_reps</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="fu">c</span>(<span class="at">ensmallen =</span> t_ens, <span class="at">nnls =</span> t_nnls)</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; ensmallen      nnls </span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;  9.80e-04  1.25e-05</span></span></code></pre></div>
+<p>The specialist returns the same answer in a fraction of the time, by
+one to two orders of magnitude across the runs measured here. The
+specialist knows that every constraint is a bound on a single
+coefficient and works that structure directly. The augmented Lagrangian
+is told nothing about the structure and solves a sequence of
+unconstrained problems to recover it.</p>
+<p>Use the specialist when one exists. A general purpose optimizer earns
+its place on an objective no packaged solver covers, or on an objective
+you wrote yourself.</p>
+</div>
+<div id="writing-the-convention-backwards" class="section level1">
+<h1>Writing the convention backwards</h1>
+<p>Moving the clamp to the other side, from
+<code>std::min(0.0, beta(i, 0))</code> to
+<code>std::max(0.0, beta(i, 0))</code>, states <span class="math inline">\(\beta_j \leq 0\)</span> instead. It compiles
+without a warning and runs without an error, since both forms are valid
+constrained functions and only the region they describe differs. On the
+data above it returns</p>
+<pre><code>0.0000  0.0000  0.0000  -0.1527</code></pre>
+<p>with a residual sum of squares of 775.11, against 102.72 for the fit
+reported earlier. Every coefficient is non-positive, which is what the
+flipped constraint asked for.</p>
+<p>Negating the constraint, in contrast, changes nothing. Replacing
+<span class="math inline">\(c_j\)</span> by <span class="math inline">\(-c_j\)</span> along with its gradient leaves the
+augmented objective untouched. The multiplier update <span class="math inline">\(\lambda_i \leftarrow \lambda_i - \sigma
+c_i\)</span> negates <span class="math inline">\(\lambda_i\)</span> in
+step, so the pair of sign flips leaves both <span class="math inline">\(\lambda_i c_i\)</span> and <span class="math inline">\(c_i^2\)</span> where they were. Written both ways
+the two agree bit for bit. What cannot be swapped is which side of zero
+counts as feasible.</p>
+<div id="a-mismatched-constraint-gradient" class="section level2">
+<h2>A mismatched constraint gradient</h2>
+<p><code>GradientConstraint()</code> returns the derivative of what
+<code>EvaluateConstraint()</code> returns, so the clamp appears in both.
+Dropping it from the gradient alone, and returning <span class="math inline">\(e_j\)</span> whether or not the bound is violated,
+gives the derivative of <span class="math inline">\(\beta_j\)</span>
+rather than of <span class="math inline">\(\min(0, \beta_j)\)</span>, so
+the value and the gradient describe different functions.</p>
+<p><code>ensmallen</code>’s own <code>GockenbachFunction</code> returns
+the unclamped derivative for its inequality, and on the data above the
+two forms are indistinguishable. Across eight randomized data sets with
+three to eight columns each, the clamped form never exceeded the
+reference objective by more than 3e-13, while the unclamped form
+exceeded it by 3.8e-04 on one of the eight. The disagreement appears
+where a coefficient sits near its bound and is invisible everywhere
+else. Nothing in the build or the run reports it.</p>
+</div>
+</div>
+<div id="the-included-file" class="section level1">
+<h1>The included file</h1>
+<p>The class and the exported function are in
+<code>src/example-nnls-constrained.cpp</code> in the package sources,
+together with the argument checks omitted above and the roxygen block
+that produces <code>?nnls_auglag</code>. The <a href="logistic-regression.html#moving-this-into-an-r-package">logistic
+regression vignette</a> covers what moving a standalone file into a
+package involves.</p>
+<p>What generalizes from the file above is the contract rather than the
+solver. Any feasible region that can be written as a list of residuals,
+each zero exactly when its condition holds, reaches
+<code>ens::AugLagrangian</code> through the same five member
+functions.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

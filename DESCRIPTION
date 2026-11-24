@@ -1,7 +1,7 @@
 Package: RcppEnsmallen
 Title: Header-Only C++ Mathematical Optimization Library for
         'Armadillo'
-Version: 0.3.11.0.1
+Version: 0.3.11.2.1
 Authors@R: c(
     person("James Joseph", "Balamuta", email = "balamut2@illinois.edu", 
            role = c("aut", "cre", "cph"), 
@@ -33,15 +33,15 @@ BugReports: https://github.com/coatless-rpkg/rcppensmallen/issues
 Encoding: UTF-8
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Rcpp
-RoxygenNote: 7.3.3
-Suggests: knitr, rmarkdown
+Suggests: knitr, rmarkdown, tinytest, quantreg, nnls
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2026-07-18 23:45:58 UTC; ronin
+Packaged: 2026-11-24 04:58:19 UTC; ronin
 Author: James Joseph Balamuta [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0003-2826-8458>),
   Dirk Eddelbuettel [aut, cph] (ORCID:
     <https://orcid.org/0000-0001-6419-907X>)
 Maintainer: James Joseph Balamuta <balamut2@illinois.edu>
 Repository: CRAN
-Date/Publication: 2026-07-19 02:40:02 UTC
+Date/Publication: 2026-11-24 08:20:09 UTC

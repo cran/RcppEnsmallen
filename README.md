@@ -1,10 +1,8 @@
-# RcppEnsmallen
+# RcppEnsmallen <picture><source media="(prefers-color-scheme: dark)" srcset="man/figures/rcppensmallen-logo-animated-dark.svg"><img src="man/figures/rcppensmallen-logo-animated-light.svg" align="right" alt="Logo: an optimizer's trace zigzagging down a contour map of a loss basin, each stride shorter than the last, to a marked minimum." width="150"/></picture>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/coatless-rpkg/rcppensmallen/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coatless-rpkg/rcppensmallen/actions/workflows/R-CMD-check.yaml)
 [![License](https://eddelbuettel.github.io/badges/GPL2+.svg)](https://www.gnu.org/licenses/gpl-2.0.html) 
-[![CRAN](https://www.r-pkg.org/badges/version/RcppEnsmallen)](https://cran.r-project.org/package=RcppEnsmallen) 
-[![Downloads](https://cranlogs.r-pkg.org/badges/RcppEnsmallen?color=brightgreen)](https://www.r-pkg.org/pkg/RcppEnsmallen)
 <!-- badges: end -->
 
 ## Overview

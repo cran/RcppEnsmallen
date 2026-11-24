@@ -1,3 +1,48 @@
+# RcppEnsmallen 0.3.11.2.1
+
+- Upgraded to ensmallen 3.11.2: "Sunny Day" (2026-11-23)
+  - Fix incorrect child generation computation for NSGA-II
+    ([#461](https://github.com/mlpack/ensmallen/pull/461)).
+  - Better handling of OpenMP/pthreads linking for non-Linux systems
+    ([#461](https://github.com/mlpack/ensmallen/pull/461)).
+  - Better output from ProgressBar when optimization completes in the middle of
+    an epoch ([#459](https://github.com/mlpack/ensmallen/pull/459)).
+  - Fix convergence of `L1Constraint` proximal steps on systems with
+    extended-precision floating point
+    ([#465](https://github.com/mlpack/ensmallen/pull/465)).
+  - Fix width setting for ProgressBar callback
+    ([#467](https://github.com/mlpack/ensmallen/pull/467)).
+- New logistic regression examples
+  ([#5](https://github.com/coatless-rpkg/rcppensmallen/issues/5)):
+  - `logistic_reg_lbfgs()` fits the model with `L_BFGS` and takes an optional
+    ridge penalty.
+  - `logistic_reg_adam()` fits the same model with mini-batch `Adam`.
+  - `logistic_reg_lbfgs_path()` records each step `L_BFGS` takes through a
+    callback.
+  - The standalone source is installed at
+    `system.file("examples", "logistic-regression.cpp", package = "RcppEnsmallen")`.
+- New `lad_reg_pso()` fits least absolute deviations regression with
+  `LBestPSO`, a gradient-free optimizer.
+- New `nnls_auglag()` fits non-negative least squares with `AugLagrangian`, a
+  constrained optimizer.
+- New vignettes work through each example:
+  - "Solving Logistic Regression using Numeric Optimization".
+  - "Watching an Optimizer Run with Callbacks".
+  - "Gradient-Free Optimization with Least Absolute Deviations", compared
+    against `quantreg::rq()`.
+  - "Constrained Optimization with Non-Negative Least Squares", compared
+    against `nnls::nnls()`.
+- New `tinytest` suite covers the example functions.
+- New package logo, shown in the README.
+
+# RcppEnsmallen 0.3.11.1.1
+
+- Upgraded to ensmallen 3.11.1: "Sunny Day" (2026-07-29)
+  - Loosen tolerance for Lookahead tests to prevent spurious failures
+    ([#456](https://github.com/mlpack/ensmallen/pull/456)).
+  - Fix uninitialized gradient constraint matrix for `AugLagrangian`
+    ([#458](https://github.com/mlpack/ensmallen/pull/458)).
+
 # RcppEnsmallen 0.3.11.0.1
 
 - Upgraded to ensmallen 3.11.0: "Sunny Day" (2025-12-16)
